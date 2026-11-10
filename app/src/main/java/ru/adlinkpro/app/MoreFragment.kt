@@ -31,13 +31,19 @@ class MoreFragment : Fragment() {
         }
 
         view.findViewById<Button>(R.id.btn_logout).setOnClickListener {
-            sp.edit().remove("token").apply()
+            sp.edit().remove("token").remove("pin").apply()
             startActivity(Intent(requireContext(), LoginActivity::class.java))
             requireActivity().finish()
         }
 
+        view.findViewById<TextView>(R.id.row_sites).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, SitesFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         val stubs = mapOf(
-            R.id.row_sites to "Мои сайты",
             R.id.row_campaigns to "Рекламные кампании",
             R.id.row_deposit to "Пополнение",
             R.id.row_withdraw to "Вывод средств",
