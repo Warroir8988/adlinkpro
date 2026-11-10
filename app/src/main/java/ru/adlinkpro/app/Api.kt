@@ -1,26 +1,37 @@
 package ru.adlinkpro.app
 
-import okhttp3.FormBody
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import android.util.Log
 import org.json.JSONObject
-import java.util.concurrent.TimeUnit
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
+import java.net.URLEncoder
 
 object Api {
-    private const val BASE = "https://adlinkpro.ru/mobile/"
-    private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(20, TimeUnit.SECONDS)
-        .build()
+    private const val BASE_URL = "https://adlinkpro.ru/"
 
-    fun post(action: String, params: Map<String, String>, token: String?): JSONObject {
-        val form = FormBody.Builder()
-        params.forEach { (k, v) -> form.add(k, v) }
-        token?.let { form.add("token", it) }
-        val req = Request.Builder().url(BASE + action).post(form.build()).build()
-        client.newCall(req).execute().use { resp ->
-            val body = resp.body?.string() ?: "{}"
-            return JSONObject(body)
+    fun post(path: String, params: Map<String, String>, token: String?): JSONObject {
+        val conn = URL(BASE_URL + path).openConnection() as HttpURLConnection
+        conn.requestMethod = "POST"
+        conn.doOutput = true
+        conn.connectTimeout = 10000
+        conn.readTimeout = 10000
+        if (token != null) conn.setRequestProperty("Authorization", "Bearer $token")
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
+
+        val body = params.entries.joinToString("&") {
+            URLEncoder.encode(it.key, "UTF-8") + "=" + URLEncoder.encode(it.value, "UTF-8")
+        }
+
+        try {
+            OutputStreamWriter(conn.outputStream, "UTF-8").use { it.write(body) }
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+            Log.d("Api", "HTTP $code: $text")
+            return JSONObject(text.ifEmpty { "{\"ok\":false,\"error\":\"Пустой ответ сервера\"}" })
+        } finally {
+            conn.disconnect()
         }
     }
 }
