@@ -19,6 +19,7 @@ import kotlin.concurrent.thread
 
 class SitesFragment : Fragment() {
     private var cats: List<String> = listOf("Прочее")
+    private var savedToken: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_sites, container, false)
@@ -26,7 +27,7 @@ class SitesFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
-        val token = sp.getString("token", null)
+        savedToken = sp.getString("token", null)
 
         view.findViewById<TextView>(R.id.tv_sites_back).setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -46,14 +47,14 @@ class SitesFragment : Fragment() {
                         "sites.php",
                         mapOf("action" to "add", "url" to etUrl.text.toString().trim(),
                               "name" to etName.text.toString().trim(), "category" to cat),
-                        token
+                        savedToken
                     )
                     activity?.runOnUiThread {
                         if (json.optBoolean("ok")) {
                             etUrl.setText("")
                             etName.setText("")
                             tvStatus.text = ""
-                            load(view, token)
+                            load(view)
                         } else {
                             tvStatus.text = json.optString("error", "Ошибка")
                         }
@@ -68,7 +69,7 @@ class SitesFragment : Fragment() {
         thread {
             var names: List<String> = emptyList()
             try {
-                val json = Api.post("sites.php", mapOf("action" to "categories"), token)
+                val json = Api.post("sites.php", mapOf("action" to "categories"), savedToken)
                 if (json.optBoolean("ok")) {
                     val arr = json.optJSONArray("categories")
                     for (i in 0 until (arr?.length() ?: 0)) names += arr!!.getString(i)
@@ -83,16 +84,16 @@ class SitesFragment : Fragment() {
             }
         }
 
-        load(view, token)
+        load(view)
     }
 
-    private fun load(view: View, token: String?) {
+    private fun load(view: View) {
         val listHolder = view.findViewById<LinearLayout>(R.id.sites_list)
         thread {
             var sites: List<org.json.JSONObject> = emptyList()
             var error = ""
             try {
-                val json = Api.post("sites.php", mapOf("action" to "list"), token)
+                val json = Api.post("sites.php", mapOf("action" to "list"), savedToken)
                 if (json.optBoolean("ok")) {
                     val arr = json.optJSONArray("sites")
                     for (i in 0 until (arr?.length() ?: 0)) sites += arr!!.getJSONObject(i)
@@ -153,8 +154,8 @@ class SitesFragment : Fragment() {
                 textSize = 13f
                 setOnClickListener {
                     thread {
-                        Api.post("sites.php", mapOf("action" to "delete", "id" to s.optInt("id").toString()), null)
-                        activity?.runOnUiThread { load(requireView(), token) }
+                        Api.post("sites.php", mapOf("action" to "delete", "id" to s.optInt("id").toString()), savedToken)
+                        activity?.runOnUiThread { view?.let { load(it) } }
                     }
                 }
             }
