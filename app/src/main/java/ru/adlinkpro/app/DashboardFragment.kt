@@ -15,22 +15,37 @@ class DashboardFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val token = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", null) ?: return
+        val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
+        val token = sp.getString("token", null)
+        val tvInfo = view.findViewById<TextView>(R.id.tv_info)
         val tvBalance = view.findViewById<TextView>(R.id.tv_balance)
         val tvHold = view.findViewById<TextView>(R.id.tv_hold)
-        val tvInfo = view.findViewById<TextView>(R.id.tv_info)
+
+        tvBalance.text = "— ₽"
+        tvHold.text = "В холде: — ₽"
+
+        if (token == null) return
+
         thread {
             try {
                 val json = Api.post("data.php", emptyMap(), token)
                 if (json.optBoolean("ok")) {
                     activity?.runOnUiThread {
-                        tvBalance.text = json.optString("balance", "—") + " ₽"
-                        tvHold.text = "В холде: " + json.optString("hold", "—") + " ₽"
-                        tvInfo.text = json.optString("welcome", "Добро пожаловать в AdLinkPro")
+                        tvInfo.text = "Вы вошли как " + json.optString("welcome", "").removePrefix("Добро пожаловать, ")
+                        tvBalance.text = json.optString("balance", "0.00") + " ₽"
+                        val adv = json.optString("ad_balance", "0.00")
+                        val hold = json.optString("hold", "0.00")
+                        tvHold.text = "Рекламный баланс: $adv ₽  •  В холде: $hold ₽"
+                    }
+                } else {
+                    activity?.runOnUiThread {
+                        tvInfo.text = "Не удалось загрузить данные: " + json.optString("error", "")
                     }
                 }
             } catch (e: Exception) {
-                activity?.runOnUiThread { tvInfo.text = "Нет связи с сервером" }
+                activity?.runOnUiThread {
+                    tvInfo.text = "Нет связи с сервером"
+                }
             }
         }
     }
