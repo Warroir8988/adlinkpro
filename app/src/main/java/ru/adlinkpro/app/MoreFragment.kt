@@ -43,8 +43,14 @@ class MoreFragment : Fragment() {
                 .commit()
         }
 
+        view.findViewById<TextView>(R.id.row_campaigns).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, CampaignsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         val stubs = mapOf(
-            R.id.row_campaigns to "Рекламные кампании",
             R.id.row_deposit to "Пополнение",
             R.id.row_withdraw to "Вывод средств",
             R.id.row_stats to "Статистика",
