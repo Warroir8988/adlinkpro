@@ -1,5 +1,6 @@
 package ru.adlinkpro.app
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -16,7 +17,7 @@ class MoreFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val sp = requireContext().getSharedPreferences("app", MODE_PRIVATE)
+        val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
         val token = sp.getString("token", null)
         val tvRef = view.findViewById<TextView>(R.id.tv_referral)
         view.findViewById<Button>(R.id.btn_share).setOnClickListener {
