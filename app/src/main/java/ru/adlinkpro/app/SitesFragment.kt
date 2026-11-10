@@ -1,8 +1,10 @@
 package ru.adlinkpro.app
 
 import android.content.Context
+import android.graphics.Color
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +34,9 @@ class SitesFragment : Fragment() {
         }
 
         val spCat = view.findViewById<Spinner>(R.id.sp_site_cat)
-        spCat.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, catNames)
+        val adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, catNames)
+        adapter.setDropDownViewResource(R.layout.spinner_item)
+        spCat.adapter = adapter
 
         val etUrl = view.findViewById<EditText>(R.id.et_site_url)
         val etName = view.findViewById<EditText>(R.id.et_site_name)
@@ -85,11 +89,11 @@ class SitesFragment : Fragment() {
             activity?.runOnUiThread {
                 listHolder.removeAllViews()
                 if (error.isNotEmpty()) {
-                    listHolder.addView(label(error, "@color/red"))
+                    listHolder.addView(label(error, Color.parseColor("#EF4444")))
                     return@runOnUiThread
                 }
                 if (sites.isEmpty()) {
-                    listHolder.addView(label("Сайтов пока нет. Добавьте первый выше.", "@color/text_secondary"))
+                    listHolder.addView(label("Сайтов пока нет. Добавьте первый выше.", Color.parseColor("#64748B")))
                     return@runOnUiThread
                 }
                 for (s in sites) listHolder.addView(card(s))
@@ -97,11 +101,11 @@ class SitesFragment : Fragment() {
         }
     }
 
-    private fun label(text: String, colorRef: String): TextView {
+    private fun label(text: String, color: Int): TextView {
         val tv = TextView(requireContext())
         tv.text = text
         tv.textSize = 14f
-        tv.setTextColor(resources.getColor(resources.getIdentifier(colorRef.removePrefix("@color/"), "color", requireContext().packageName), requireContext().theme))
+        tv.setTextColor(color)
         return tv
     }
 
@@ -109,21 +113,23 @@ class SitesFragment : Fragment() {
         val ctx = requireContext()
         val box = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(0xFFFFFFFF.toInt())
-            setPadding(40, 32, 40, 32)
-            // отступ между карточками
+            background = GradientDrawable().apply {
+                setColor(Color.WHITE)
+                cornerRadius = 40f
+            }
+            setPadding(40, 36, 40, 36)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { bottomMargin = 16 }
+            ).apply { bottomMargin = 20 }
         }
-        val name = TextView(ctx).apply { text = s.optString("name"); textSize = 16f; setTextColor(0xFF1E293B.toInt()); setTypeface(typeface, android.graphics.Typeface.BOLD) }
-        val url = TextView(ctx).apply { text = s.optString("url"); textSize = 13f; setTextColor(0xFF64748B.toInt()) }
+        val name = TextView(ctx).apply { text = s.optString("name"); textSize = 16f; setTextColor(Color.parseColor("#1E293B")); setTypeface(typeface, Typeface.BOLD) }
+        val url = TextView(ctx).apply { text = s.optString("url"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
         val st = TextView(ctx).apply {
             textSize = 13f
             when (s.optString("status")) {
-                "approved" -> { text = "✅ Одобрен"; setTextColor(0xFF10B981.toInt()) }
-                "pending"  -> { text = "⏳ На проверке"; setTextColor(0xFFF59E0B.toInt()) }
-                "rejected" -> { text = "❌ Отклонён" + (if (s.optString("reason").isNotEmpty()) ": " + s.optString("reason") else ""); setTextColor(0xFFEF4444.toInt()) }
+                "approved" -> { text = "✅ Одобрен"; setTextColor(Color.parseColor("#10B981")) }
+                "pending"  -> { text = "⏳ На проверке"; setTextColor(Color.parseColor("#F59E0B")) }
+                "rejected" -> { text = "❌ Отклонён" + (if (s.optString("reason").isNotEmpty()) ": " + s.optString("reason") else ""); setTextColor(Color.parseColor("#EF4444")) }
                 else -> text = s.optString("status")
             }
         }
