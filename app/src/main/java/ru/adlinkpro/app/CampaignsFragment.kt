@@ -153,28 +153,45 @@ class CampaignsFragment : Fragment() {
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply { bottomMargin = 20 }
         }
-        val title = TextView(ctx).apply { text = c.optString("title"); textSize = 16f; setTextColor(Color.parseColor("#1E293B")); setTypeface(typeface, Typeface.BOLD) }
-        val site = TextView(ctx).apply { text = "Сайт: " + c.optString("site_name", c.optString("site_url")); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
-        val text = TextView(ctx).apply { text = c.optString("ad_text"); textSize = 13f; setTextColor(Color.parseColor("#334155")) }
-        val money = TextView(ctx).apply {
-            text = "Бюджет: " + c.optString("budget") + " ₽ • Израсходовано: " + c.optString("spent") + " ₽ • Клики: " + c.optInt("clicks").toString()
-            textSize = 13f; setTextColor(Color.parseColor("#64748B"))
-        }
-        val st = TextView(ctx).apply {
-            textSize = 13f
-            when (c.optString("status")) {
-                "active"  -> { text = "▶️ Активна"; setTextColor(Color.parseColor("#10B981")) }
-                "pending" -> { text = "⏳ На модерации"; setTextColor(Color.parseColor("#F59E0B")) }
-                "stopped" -> { text = "⏸ Остановлена"; setTextColor(Color.parseColor("#64748B")) }
-                "rejected"-> { text = "❌ Отклонена" + (if (c.optString("reason").isNotEmpty()) ": " + c.optString("reason") else ""); setTextColor(Color.parseColor("#EF4444")) }
-                else -> text = c.optString("status")
+        val title = TextView(ctx)
+        title.text = c.optString("title")
+        title.textSize = 16f
+        title.setTextColor(Color.parseColor("#1E293B"))
+        title.setTypeface(title.typeface, Typeface.BOLD)
+
+        val site = TextView(ctx)
+        site.text = "Сайт: " + c.optString("site_name", c.optString("site_url"))
+        site.textSize = 13f
+        site.setTextColor(Color.parseColor("#64748B"))
+
+        val adText = TextView(ctx)
+        adText.text = c.optString("ad_text")
+        adText.textSize = 13f
+        adText.setTextColor(Color.parseColor("#334155"))
+
+        val money = TextView(ctx)
+        money.text = "Бюджет: " + c.optString("budget") + " ₽ • Израсходовано: " + c.optString("spent") + " ₽ • Клики: " + c.optInt("clicks").toString()
+        money.textSize = 13f
+        money.setTextColor(Color.parseColor("#64748B"))
+
+        val st = TextView(ctx)
+        st.textSize = 13f
+        when (c.optString("status")) {
+            "active"  -> { st.text = "▶️ Активна"; st.setTextColor(Color.parseColor("#10B981")) }
+            "pending" -> { st.text = "⏳ На модерации"; st.setTextColor(Color.parseColor("#F59E0B")) }
+            "stopped" -> { st.text = "⏸ Остановлена"; st.setTextColor(Color.parseColor("#64748B")) }
+            "rejected"-> {
+                st.text = "❌ Отклонена" + (if (c.optString("reason").isNotEmpty()) ": " + c.optString("reason") else "")
+                st.setTextColor(Color.parseColor("#EF4444"))
             }
+            else -> st.text = c.optString("status")
         }
-        box.addView(title); box.addView(site); box.addView(text); box.addView(money); box.addView(st)
+
+        box.addView(title); box.addView(site); box.addView(adText); box.addView(money); box.addView(st)
 
         if (c.optString("status") == "active") {
             val btn = Button(ctx).apply {
-                text = "Остановить"
+                this.text = "Остановить"
                 textSize = 13f
                 setOnClickListener {
                     thread {
