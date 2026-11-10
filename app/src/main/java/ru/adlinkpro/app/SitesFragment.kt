@@ -18,8 +18,7 @@ import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class SitesFragment : Fragment() {
-    private val cats = listOf("other", "news", "finance", "crypto", "games", "shopping", "education", "entertainment")
-    private val catNames = listOf("Другое", "Новости", "Финансы", "Крипто", "Игры", "Покупки", "Обучение", "Развлечения")
+    private var cats: List<String> = listOf("Прочее")
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_sites, container, false)
@@ -34,16 +33,12 @@ class SitesFragment : Fragment() {
         }
 
         val spCat = view.findViewById<Spinner>(R.id.sp_site_cat)
-        val adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, catNames)
-        adapter.setDropDownViewResource(R.layout.spinner_item)
-        spCat.adapter = adapter
-
         val etUrl = view.findViewById<EditText>(R.id.et_site_url)
         val etName = view.findViewById<EditText>(R.id.et_site_name)
         val tvStatus = view.findViewById<TextView>(R.id.tv_site_status)
 
         view.findViewById<Button>(R.id.btn_site_add).setOnClickListener {
-            val cat = cats[spCat.selectedItemPosition]
+            val cat = if (spCat.selectedItemPosition >= 0) cats[spCat.selectedItemPosition] else "Прочее"
             tvStatus.text = "Отправляем…"
             thread {
                 try {
@@ -66,6 +61,25 @@ class SitesFragment : Fragment() {
                 } catch (e: Exception) {
                     activity?.runOnUiThread { tvStatus.text = "Нет связи с сервером" }
                 }
+            }
+        }
+
+        // Категории с сервера — как на сайте
+        thread {
+            var names: List<String> = emptyList()
+            try {
+                val json = Api.post("sites.php", mapOf("action" to "categories"), token)
+                if (json.optBoolean("ok")) {
+                    val arr = json.optJSONArray("categories")
+                    for (i in 0 until (arr?.length() ?: 0)) names += arr!!.getString(i)
+                }
+            } catch (_: Exception) {}
+            if (names.isEmpty()) names = listOf("Прочее")
+            cats = names
+            activity?.runOnUiThread {
+                val adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, cats)
+                adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
+                spCat.adapter = adapter
             }
         }
 
@@ -113,10 +127,7 @@ class SitesFragment : Fragment() {
         val ctx = requireContext()
         val box = LinearLayout(ctx).apply {
             orientation = LinearLayout.VERTICAL
-            background = GradientDrawable().apply {
-                setColor(Color.WHITE)
-                cornerRadius = 40f
-            }
+            background = GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = 40f }
             setPadding(40, 36, 40, 36)
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT
@@ -124,6 +135,7 @@ class SitesFragment : Fragment() {
         }
         val name = TextView(ctx).apply { text = s.optString("name"); textSize = 16f; setTextColor(Color.parseColor("#1E293B")); setTypeface(typeface, Typeface.BOLD) }
         val url = TextView(ctx).apply { text = s.optString("url"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
+        val cat = TextView(ctx).apply { text = "Категория: " + s.optString("category"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
         val st = TextView(ctx).apply {
             textSize = 13f
             when (s.optString("status")) {
@@ -133,7 +145,7 @@ class SitesFragment : Fragment() {
                 else -> text = s.optString("status")
             }
         }
-        box.addView(name); box.addView(url); box.addView(st)
+        box.addView(name); box.addView(url); box.addView(cat); box.addView(st)
 
         if (s.optString("status") != "approved") {
             val btn = Button(ctx).apply {
@@ -142,7 +154,7 @@ class SitesFragment : Fragment() {
                 setOnClickListener {
                     thread {
                         Api.post("sites.php", mapOf("action" to "delete", "id" to s.optInt("id").toString()), null)
-                        activity?.runOnUiThread { load(requireView(), requireContext().getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", null)) }
+                        activity?.runOnUiThread { load(requireView(), token) }
                     }
                 }
             }
