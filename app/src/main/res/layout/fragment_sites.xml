@@ -62,14 +62,15 @@
                 android:textColorHint="@color/text_secondary"
                 android:inputType="text"
                 android:maxLines="1"/>
-
-            <Spinner
+             <Spinner
                 android:id="@+id/sp_site_cat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_spinner"
+                android:popupBackground="@drawable/bg_spinner_dark"
                 android:padding="10dp"/>
+
 
             <Button
                 android:id="@+id/btn_site_add"
