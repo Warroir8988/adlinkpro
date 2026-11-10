@@ -19,7 +19,9 @@ object Api {
         if (token != null) conn.setRequestProperty("Authorization", "Bearer $token")
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
 
-        val body = params.entries.joinToString("&") {
+        // Токен дублируем в теле: часть хостингов вырезает заголовок Authorization
+        val allParams = if (token != null) params + mapOf("token" to token) else params
+        val body = allParams.entries.joinToString("&") {
             URLEncoder.encode(it.key, "UTF-8") + "=" + URLEncoder.encode(it.value, "UTF-8")
         }
 
