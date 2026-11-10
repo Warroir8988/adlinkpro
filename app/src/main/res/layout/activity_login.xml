@@ -9,7 +9,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp"
         android:gravity="center_horizontal">
 
         <ImageView
@@ -42,7 +44,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:hint="E-mail"
+            app:expandedHintEnabled="false"
             app:boxStrokeColor="@color/primary"
+            app:boxStrokeWidth="2dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusBottomEnd="14dp"
             app:hintTextColor="@color/primary">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -51,6 +59,8 @@
                 android:layout_height="wrap_content"
                 android:inputType="textEmailAddress"
                 android:maxLines="1"
+                android:textColorHint="#B0BCCB"
+                android:textSize="16sp"
                 android:textColor="@color/dark" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -58,11 +68,18 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:hint="Пароль"
+            app:expandedHintEnabled="false"
             app:boxStrokeColor="@color/primary"
+            app:boxStrokeWidth="2dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusBottomEnd="14dp"
             app:hintTextColor="@color/primary"
-            app:endIconMode="password_toggle">
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/dark">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/et_password"
@@ -70,6 +87,8 @@
                 android:layout_height="wrap_content"
                 android:inputType="textPassword"
                 android:maxLines="1"
+                android:textColorHint="#B0BCCB"
+                android:textSize="16sp"
                 android:textColor="@color/dark" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -77,7 +96,7 @@
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="26dp"
             android:backgroundTint="@color/primary"
             android:text="@string/login"
             android:textColor="@color/white" />
@@ -87,7 +106,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/primary"
             android:text="@string/register" />
 
