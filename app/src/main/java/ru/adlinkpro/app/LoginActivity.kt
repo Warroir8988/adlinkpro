@@ -8,6 +8,7 @@ import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -151,6 +152,10 @@ class LoginActivity : AppCompatActivity() {
         }
 
         et.requestFocus()
+        et.post {
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.showSoftInput(et, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     private fun sha256(s: String): String =
