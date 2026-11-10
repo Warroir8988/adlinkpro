@@ -1,5 +1,6 @@
 package ru.adlinkpro.app
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +16,7 @@ class NewsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val tvList = view.findViewById<TextView>(R.id.tv_news)
-        val token = requireContext().getSharedPreferences("app", MODE_PRIVATE).getString("token", null)
+        val token = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", null)
         thread {
             try {
                 val json = Api.post("data.php", emptyMap(), token)
