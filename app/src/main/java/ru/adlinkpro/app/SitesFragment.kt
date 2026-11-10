@@ -8,17 +8,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class SitesFragment : Fragment() {
-    private var cats: List<String> = listOf("Прочее")
+    private var cats: List<String> = emptyList()
+    private val selected = mutableSetOf<String>()
     private var savedToken: String? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -33,37 +33,10 @@ class SitesFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        val spCat = view.findViewById<Spinner>(R.id.sp_site_cat)
+        val tvCat = view.findViewById<TextView>(R.id.tv_site_cat)
         val etUrl = view.findViewById<EditText>(R.id.et_site_url)
         val etName = view.findViewById<EditText>(R.id.et_site_name)
         val tvStatus = view.findViewById<TextView>(R.id.tv_site_status)
-
-        view.findViewById<Button>(R.id.btn_site_add).setOnClickListener {
-            val cat = if (spCat.selectedItemPosition >= 0) cats[spCat.selectedItemPosition] else "Прочее"
-            tvStatus.text = "Отправляем…"
-            thread {
-                try {
-                    val json = Api.post(
-                        "sites.php",
-                        mapOf("action" to "add", "url" to etUrl.text.toString().trim(),
-                              "name" to etName.text.toString().trim(), "category" to cat),
-                        savedToken
-                    )
-                    activity?.runOnUiThread {
-                        if (json.optBoolean("ok")) {
-                            etUrl.setText("")
-                            etName.setText("")
-                            tvStatus.text = ""
-                            load(view)
-                        } else {
-                            tvStatus.text = json.optString("error", "Ошибка")
-                        }
-                    }
-                } catch (e: Exception) {
-                    activity?.runOnUiThread { tvStatus.text = "Нет связи с сервером" }
-                }
-            }
-        }
 
         // Категории с сервера — как на сайте
         thread {
@@ -77,14 +50,63 @@ class SitesFragment : Fragment() {
             } catch (_: Exception) {}
             if (names.isEmpty()) names = listOf("Прочее")
             cats = names
-            activity?.runOnUiThread {
-                val adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, cats)
-                adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-                spCat.adapter = adapter
+            activity?.runOnUiThread { updateCatLabel(tvCat) }
+        }
+
+        tvCat.setOnClickListener {
+            if (cats.isEmpty()) return@setOnClickListener
+            val checked = cats.map { it in selected }.toBooleanArray()
+            AlertDialog.Builder(requireContext())
+                .setTitle("Выберите категории")
+                .setMultiChoiceItems(cats.toTypedArray(), checked) { _, which, isChecked ->
+                    if (isChecked) selected.add(cats[which]) else selected.remove(cats[which])
+                }
+                .setPositiveButton("Выбрать") { d, _ ->
+                    updateCatLabel(tvCat)
+                    d.dismiss()
+                }
+                .setNegativeButton("Отмена") { d, _ -> d.dismiss() }
+                .show()
+        }
+
+        view.findViewById<Button>(R.id.btn_site_add).setOnClickListener {
+            if (selected.isEmpty()) {
+                tvStatus.text = "Выберите хотя бы одну категорию"
+                return@setOnClickListener
+            }
+            val cat = selected.joinToString(", ")
+            tvStatus.text = "Отправляем…"
+            thread {
+                try {
+                    val json = Api.post(
+                        "sites.php",
+                        mapOf("action" to "add", "url" to etUrl.text.toString().trim(),
+                              "name" to etName.text.toString().trim(), "category" to cat),
+                        savedToken
+                    )
+                    activity?.runOnUiThread {
+                        if (json.optBoolean("ok")) {
+                            etUrl.setText("")
+                            etName.setText("")
+                            selected.clear()
+                            updateCatLabel(tvCat)
+                            tvStatus.text = ""
+                            load(view)
+                        } else {
+                            tvStatus.text = json.optString("error", "Ошибка")
+                        }
+                    }
+                } catch (e: Exception) {
+                    activity?.runOnUiThread { tvStatus.text = "Нет связи с сервером" }
+                }
             }
         }
 
         load(view)
+    }
+
+    private fun updateCatLabel(tvCat: TextView) {
+        tvCat.text = if (selected.isEmpty()) "Категории: не выбраны" else "Категории: " + selected.joinToString(", ")
     }
 
     private fun load(view: View) {
@@ -136,7 +158,7 @@ class SitesFragment : Fragment() {
         }
         val name = TextView(ctx).apply { text = s.optString("name"); textSize = 16f; setTextColor(Color.parseColor("#1E293B")); setTypeface(typeface, Typeface.BOLD) }
         val url = TextView(ctx).apply { text = s.optString("url"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
-        val cat = TextView(ctx).apply { text = "Категория: " + s.optString("category"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
+        val cat = TextView(ctx).apply { text = "Категории: " + s.optString("category"); textSize = 13f; setTextColor(Color.parseColor("#64748B")) }
         val st = TextView(ctx).apply {
             textSize = 13f
             when (s.optString("status")) {
