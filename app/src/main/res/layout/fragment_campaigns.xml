@@ -81,17 +81,26 @@
                 android:minLines="2"/>
 
             <EditText
-                android:id="@+id/et_camp_budget"
+                android:id="@+id/et_camp_days"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input"
                 android:padding="14dp"
-                android:hint="Бюджет, ₽ (не менее 1)"
+                android:hint="Срок показов, дней"
                 android:textColor="@color/text_main"
                 android:textColorHint="@color/text_secondary"
-                android:inputType="numberDecimal"
+                android:inputType="number"
                 android:maxLines="1"/>
+
+            <TextView
+                android:id="@+id/tv_camp_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Загружаем цену…"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"/>
 
             <Button
                 android:id="@+id/btn_camp_create"
