@@ -34,13 +34,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/white"
+            android:background="@drawable/bg_card"
             android:padding="16dp">
 
             <EditText
                 android:id="@+id/et_site_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
                 android:hint="Адрес сайта, например mysite.ru"
                 android:textColor="@color/text_main"
                 android:textColorHint="@color/text_secondary"
@@ -51,7 +54,9 @@
                 android:id="@+id/et_site_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
                 android:hint="Название сайта"
                 android:textColor="@color/text_main"
                 android:textColorHint="@color/text_secondary"
@@ -62,13 +67,15 @@
                 android:id="@+id/sp_site_cat"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"/>
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_spinner"
+                android:padding="10dp"/>
 
             <Button
                 android:id="@+id/btn_site_add"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:backgroundTint="@color/primary"
                 android:text="Добавить сайт"
                 android:textColor="@color/white"/>
