@@ -5,6 +5,8 @@ import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,6 +23,10 @@ class CampaignsFragment : Fragment() {
     private data class Site(val id: Int, val label: String)
     private var sites: List<Site> = emptyList()
     private var savedToken: String? = null
+    private var pricePerDay = 0.0
+    private var minDays = 1
+    private var maxDays = 365
+    private var selectedCats = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_campaigns, container, false)
@@ -37,12 +43,77 @@ class CampaignsFragment : Fragment() {
         val spSite = view.findViewById<Spinner>(R.id.sp_camp_site)
         val etTitle = view.findViewById<EditText>(R.id.et_camp_title)
         val etText = view.findViewById<EditText>(R.id.et_camp_text)
-        val etBudget = view.findViewById<EditText>(R.id.et_camp_budget)
+        val etDays = view.findViewById<EditText>(R.id.et_camp_days)
+        val tvPrice = view.findViewById<TextView>(R.id.tv_camp_price)
         val tvStatus = view.findViewById<TextView>(R.id.tv_camp_status)
+
+        // Цена и границы из админ-настроек
+        thread {
+            try {
+                val json = Api.post("campaigns.php", mapOf("action" to "config"), savedToken)
+                if (json.optBoolean("ok")) {
+                    pricePerDay = json.optDouble("price_per_day", 50.0)
+                    minDays = json.optInt("min_days", 1)
+                    maxDays = json.optInt("max_days", 365)
+                    activity?.runOnUiThread {
+                        tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: 0 ₽"
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+
+        // Живой пересчёт итога
+        etDays.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                val d = s?.toString()?.toIntOrNull() ?: 0
+                val total = if (d in 1..maxDays) d * pricePerDay else 0.0
+                tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: " + trimNum(total) + " ₽"
+            }
+        })
+
+        // Выбор категорий (те же имена, что на экране сайтов)
+        thread {
+            var names: List<String> = emptyList()
+            try {
+                val json = Api.post("sites.php", mapOf("action" to "categories"), savedToken)
+                if (json.optBoolean("ok")) {
+                    val arr = json.optJSONArray("categories")
+                    for (i in 0 until (arr?.length() ?: 0)) names += arr!!.getString(i)
+                }
+            } catch (_: Exception) {}
+            if (names.isNotEmpty()) {
+                val cats = names
+                activity?.runOnUiThread {
+                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                    // категории выбираются тапом по строке цены — открываем диалог
+                    tvPrice.setOnClickListener {
+                        val chosen = selectedCats.split(",").filter { it.isNotBlank() }.toSet()
+                        val checked = cats.map { it in chosen }.toBooleanArray()
+                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                            .setTitle("Категории показа")
+                            .setMultiChoiceItems(cats.toTypedArray(), checked) { _, which, isChecked ->
+                                val set = selectedCats.split(",").filter { it.isNotBlank() }.toMutableSet()
+                                if (isChecked) set.add(cats[which]) else set.remove(cats[which])
+                                selectedCats = set.joinToString(", ")
+                            }
+                            .setPositiveButton("Выбрать") { d, _ -> d.dismiss() }
+                            .setNegativeButton("Отмена") { d, _ -> d.dismiss() }
+                            .show()
+                    }
+                }
+            }
+        }
 
         view.findViewById<Button>(R.id.btn_camp_create).setOnClickListener {
             if (sites.isEmpty()) {
                 tvStatus.text = "Нет одобренных сайтов — сначала добавьте сайт"
+                return@setOnClickListener
+            }
+            val days = etDays.text.toString().toIntOrNull() ?: 0
+            if (days < minDays || days > maxDays) {
+                tvStatus.text = "Срок: от " + minDays + " до " + maxDays + " дней"
                 return@setOnClickListener
             }
             val site = sites[spSite.selectedItemPosition]
@@ -54,9 +125,10 @@ class CampaignsFragment : Fragment() {
                         mapOf(
                             "action" to "create",
                             "site_id" to site.id.toString(),
-                            "title" to etTitle.text.toString().trim(),
+                            "name" to etTitle.text.toString().trim(),
                             "ad_text" to etText.text.toString().trim(),
-                            "budget" to etBudget.text.toString().trim()
+                            "days" to days.toString(),
+                            "categories" to selectedCats
                         ),
                         savedToken
                     )
@@ -64,7 +136,7 @@ class CampaignsFragment : Fragment() {
                         if (json.optBoolean("ok")) {
                             etTitle.setText("")
                             etText.setText("")
-                            etBudget.setText("")
+                            etDays.setText("")
                             tvStatus.text = ""
                             load(view)
                         } else {
@@ -79,6 +151,10 @@ class CampaignsFragment : Fragment() {
 
         loadSites(view)
         load(view)
+    }
+
+    private fun trimNum(v: Double): String {
+        return if (v == v.toLong().toDouble()) v.toLong().toString() else String.format("%.2f", v)
     }
 
     private fun loadSites(view: View) {
@@ -154,13 +230,13 @@ class CampaignsFragment : Fragment() {
             ).apply { bottomMargin = 20 }
         }
         val title = TextView(ctx)
-        title.text = c.optString("title")
+        title.text = c.optString("name")
         title.textSize = 16f
         title.setTextColor(Color.parseColor("#1E293B"))
         title.setTypeface(title.typeface, Typeface.BOLD)
 
         val site = TextView(ctx)
-        site.text = "Сайт: " + c.optString("site_name", c.optString("site_url"))
+        site.text = "Сайт: " + c.optString("site_url", c.optString("link"))
         site.textSize = 13f
         site.setTextColor(Color.parseColor("#64748B"))
 
@@ -169,8 +245,16 @@ class CampaignsFragment : Fragment() {
         adText.textSize = 13f
         adText.setTextColor(Color.parseColor("#334155"))
 
+        val cats = TextView(ctx)
+        cats.text = "Категории: " + c.optString("cats", "—")
+        cats.textSize = 13f
+        cats.setTextColor(Color.parseColor("#64748B"))
+
         val money = TextView(ctx)
-        money.text = "Бюджет: " + c.optString("budget") + " ₽ • Израсходовано: " + c.optString("spent") + " ₽ • Клики: " + c.optInt("clicks").toString()
+        money.text = "Срок: " + c.optInt("days").toString() + " дн. • Бюджет: " + c.optString("budget") + " ₽"
+        if (c.optString("start").isNotEmpty()) {
+            money.text = money.text.toString() + " • " + c.optString("start") + " → " + c.optString("end")
+        }
         money.textSize = 13f
         money.setTextColor(Color.parseColor("#64748B"))
 
@@ -179,19 +263,20 @@ class CampaignsFragment : Fragment() {
         when (c.optString("status")) {
             "active"  -> { st.text = "▶️ Активна"; st.setTextColor(Color.parseColor("#10B981")) }
             "pending" -> { st.text = "⏳ На модерации"; st.setTextColor(Color.parseColor("#F59E0B")) }
-            "stopped" -> { st.text = "⏸ Остановлена"; st.setTextColor(Color.parseColor("#64748B")) }
+            "paused"  -> { st.text = "⏸ На паузе"; st.setTextColor(Color.parseColor("#64748B")) }
+            "expired" -> { st.text = "🏁 Завершена"; st.setTextColor(Color.parseColor("#64748B")) }
             "rejected"-> {
-                st.text = "❌ Отклонена" + (if (c.optString("reason").isNotEmpty()) ": " + c.optString("reason") else "")
+                st.text = "❌ Отклонена" + (if (c.optString("reason").isNotEmpty()) ": " + c.optString("reason") else "") + " • Деньги возвращены"
                 st.setTextColor(Color.parseColor("#EF4444"))
             }
             else -> st.text = c.optString("status")
         }
 
-        box.addView(title); box.addView(site); box.addView(adText); box.addView(money); box.addView(st)
+        box.addView(title); box.addView(site); box.addView(adText); box.addView(cats); box.addView(money); box.addView(st)
 
         if (c.optString("status") == "active") {
             val btn = Button(ctx).apply {
-                this.text = "Остановить"
+                this.text = "Пауза"
                 textSize = 13f
                 setOnClickListener {
                     thread {
