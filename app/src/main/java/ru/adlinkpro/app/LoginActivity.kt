@@ -34,7 +34,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun goMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+        val i = Intent(this, MainActivity::class.java)
+        i.putExtra("pin_ok", true)
+        startActivity(i)
         finish()
     }
 
