@@ -8,7 +8,7 @@ import java.net.URL
 import java.net.URLEncoder
 
 object Api {
-    private const val BASE_URL = "https://adlinkpro.ru/"
+    private const val BASE_URL = "https://adlinkpro.ru/mobapi/"
 
     fun post(path: String, params: Map<String, String>, token: String?): JSONObject {
         val conn = URL(BASE_URL + path).openConnection() as HttpURLConnection
