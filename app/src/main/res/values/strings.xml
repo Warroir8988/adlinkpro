@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AdLinkPro</string>
+    <string name="tagline">Зарабатывайте на показах рекламы</string>
+    <string name="email">E-mail</string>
+    <string name="password">Пароль</string>
+    <string name="login">Войти</string>
+    <string name="register">Регистрация</string>
+    <string name="welcome">Добро пожаловать в AdLinkPro</string>
+    <string name="balance">Баланс</string>
+    <string name="hold_empty">В холде: —</string>
+    <string name="loading">Загрузка…</string>
+    <string name="referral">Реферальная ссылка</string>
+    <string name="share">Поделиться</string>
+    <string name="logout">Выйти</string>
+    <string name="tab_home">Кабинет</string>
+    <string name="tab_news">Новости</string>
+    <string name="tab_more">Ещё</string>
+</resources>
