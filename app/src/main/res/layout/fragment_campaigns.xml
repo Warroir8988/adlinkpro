@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_light"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tv_camp_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="← Назад"
+            android:textColor="@color/primary"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="📣 Рекламные кампании"
+            android:textColor="@color/primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Новая кампания"
+                android:textColor="@color/text_main"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <Spinner
+                android:id="@+id/sp_camp_site"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_spinner"
+                android:popupBackground="@drawable/bg_spinner_dark"
+                android:padding="10dp"/>
+
+            <EditText
+                android:id="@+id/et_camp_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
+                android:hint="Название кампании"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
+                android:inputType="text"
+                android:maxLines="1"/>
+
+            <EditText
+                android:id="@+id/et_camp_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
+                android:hint="Текст объявления"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
+                android:inputType="textMultiLine"
+                android:minLines="2"/>
+
+            <EditText
+                android:id="@+id/et_camp_budget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:padding="14dp"
+                android:hint="Бюджет, ₽ (не менее 1)"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
+                android:inputType="numberDecimal"
+                android:maxLines="1"/>
+
+            <Button
+                android:id="@+id/btn_camp_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/primary"
+                android:text="Создать кампанию"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/tv_camp_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/red"
+                android:textSize="14sp"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Мои кампании:"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"/>
+
+        <LinearLayout
+            android:id="@+id/campaigns_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"/>
+    </LinearLayout>
+</ScrollView>
