@@ -42,6 +42,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Адрес сайта, например mysite.ru"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
                 android:inputType="textUri"
                 android:maxLines="1"/>
 
@@ -51,6 +53,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Название сайта"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"
                 android:inputType="text"
                 android:maxLines="1"/>
 
