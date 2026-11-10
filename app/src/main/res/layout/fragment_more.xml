@@ -1,38 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@color/bg_light"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/referral"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tv_referral"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="—"
-        android:textSize="18sp"
-        android:textColor="@color/primary" />
-
-    <Button
-        android:id="@+id/btn_share"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/share" />
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/btn_logout"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="@string/logout" />
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ещё"
+            android:textColor="@color/primary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/white"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Реферальная программа"
+                android:textColor="@color/text_main"
+                android:textSize="15sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tv_referral"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_marginTop="4dp"/>
+
+            <Button
+                android:id="@+id/btn_share"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Поделиться ссылкой"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@color/white"
+            android:layout_marginTop="12dp">
+
+            <TextView android:id="@+id/row_sites"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🌐 Мои сайты"              android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_campaigns" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="📢 Рекламные кампании"    android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_deposit"   android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="💰 Пополнение"            android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_withdraw"  android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="💸 Вывод средств"         android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_stats"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="📊 Статистика"            android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_ref"       android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🎁 Реферальная программа" android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_support"   android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🎧 Поддержка"             android:textColor="@color/text_main" android:textSize="16sp"/>
+            <TextView android:id="@+id/row_about"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="⭐ О платформе"           android:textColor="@color/text_main" android:textSize="16sp"/>
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Выйти"/>
+    </LinearLayout>
+</ScrollView>
