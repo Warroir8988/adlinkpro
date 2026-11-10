@@ -1,5 +1,6 @@
 package ru.adlinkpro.app
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,7 +15,7 @@ class DashboardFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val token = requireContext().getSharedPreferences("app", MODE_PRIVATE).getString("token", null) ?: return
+        val token = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", null) ?: return
         val tvBalance = view.findViewById<TextView>(R.id.tv_balance)
         val tvHold = view.findViewById<TextView>(R.id.tv_hold)
         val tvInfo = view.findViewById<TextView>(R.id.tv_info)
