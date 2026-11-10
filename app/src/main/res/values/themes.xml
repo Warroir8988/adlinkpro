@@ -4,5 +4,6 @@
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primaryDark</item>
         <item name="colorSecondary">@color/accent</item>
+        <item name="android:windowBackground">@color/bgLight</item>
     </style>
 </resources>
