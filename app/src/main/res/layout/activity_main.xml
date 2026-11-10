@@ -18,5 +18,6 @@
         android:background="@color/dark"
         app:itemIconTint="@color/nav_item"
         app:itemTextColor="@color/nav_item"
-        app:labelVisibilityMode="labeled"/>
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/bottom_nav_menu"/>
 </LinearLayout>
