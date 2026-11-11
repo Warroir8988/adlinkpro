@@ -36,6 +36,13 @@ class MoreFragment : Fragment() {
             requireActivity().finish()
         }
 
+        view.findViewById<TextView>(R.id.row_notif).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, NotificationsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         view.findViewById<TextView>(R.id.row_sites).setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.container, SitesFragment())
