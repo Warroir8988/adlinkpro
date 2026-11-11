@@ -59,6 +59,7 @@
             android:background="@color/white"
             android:layout_marginTop="12dp">
 
+            <TextView android:id="@+id/row_notif"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🔔 Уведомления"            android:textColor="@color/text_main" android:textSize="16sp"/>
             <TextView android:id="@+id/row_sites"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🌐 Мои сайты"              android:textColor="@color/text_main" android:textSize="16sp"/>
             <TextView android:id="@+id/row_campaigns" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="📢 Рекламные кампании"    android:textColor="@color/text_main" android:textSize="16sp"/>
             <TextView android:id="@+id/row_showcase"  android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="📂 Витрина (Заработок)"   android:textColor="@color/text_main" android:textSize="16sp"/>
