@@ -14,6 +14,12 @@ class DashboardFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_dashboard, container, false)
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Обновляем счётчик при возвращении на главный экран — например, после просмотра уведомлений
+        loadNotifCount()
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
         val token = sp.getString("token", null)
@@ -25,6 +31,16 @@ class DashboardFragment : Fragment() {
         tvHold.text = "В холде: — ₽"
 
         if (token == null) return
+
+        // Тап по колокольчику — открываем уведомления
+        view.findViewById<View>(R.id.bell_container).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, NotificationsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        loadNotifCount()
 
         thread {
             try {
@@ -47,6 +63,28 @@ class DashboardFragment : Fragment() {
                     tvInfo.text = "Нет связи с сервером"
                 }
             }
+        }
+    }
+
+    private fun loadNotifCount() {
+        val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
+        val token = sp.getString("token", null) ?: return
+        val badge = view?.findViewById<TextView>(R.id.bell_badge) ?: return
+
+        thread {
+            try {
+                val json = Api.post("notifications.php", mapOf("action" to "count"), token)
+                if (!json.optBoolean("ok")) return@thread
+                val unread = json.optInt("unread", 0)
+                activity?.runOnUiThread {
+                    if (unread > 0) {
+                        badge.visibility = View.VISIBLE
+                        badge.text = if (unread > 99) "99+" else unread.toString()
+                    } else {
+                        badge.visibility = View.GONE
+                    }
+                }
+            } catch (_: Exception) {}
         }
     }
 }
