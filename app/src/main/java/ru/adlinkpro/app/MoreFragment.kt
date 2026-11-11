@@ -57,9 +57,21 @@ class MoreFragment : Fragment() {
                 .commit()
         }
 
+        view.findViewById<TextView>(R.id.row_deposit).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, WalletFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        view.findViewById<TextView>(R.id.row_withdraw).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, WalletFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         val stubs = mapOf(
-            R.id.row_deposit to "Пополнение",
-            R.id.row_withdraw to "Вывод средств",
             R.id.row_stats to "Статистика",
             R.id.row_ref to "Реферальная программа",
             R.id.row_support to "Поддержка",
