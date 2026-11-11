@@ -75,6 +75,27 @@
                 android:padding="10dp"
                 android:popupBackground="@drawable/bg_spinner_dark"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Ссылка (куда ведёт)"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/et_camp_link"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_input"
+                android:hint="https://yoursite.com"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:padding="14dp"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"/>
+
             <LinearLayout
                 android:id="@+id/lay_text_fields"
                 android:layout_width="match_parent"
@@ -98,27 +119,6 @@
                     android:hint="Например: Лучший хостинг!"
                     android:inputType="text"
                     android:maxLength="40"
-                    android:maxLines="1"
-                    android:padding="14dp"
-                    android:textColor="@color/text_main"
-                    android:textColorHint="@color/text_secondary"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
-                    android:text="Ссылка (куда ведёт)"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"/>
-
-                <EditText
-                    android:id="@+id/et_camp_link"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/bg_input"
-                    android:hint="https://yoursite.com"
-                    android:inputType="textUri"
                     android:maxLines="1"
                     android:padding="14dp"
                     android:textColor="@color/text_main"
@@ -226,27 +226,6 @@
                     android:text="Файл не выбран"
                     android:textColor="@color/text_secondary"
                     android:textSize="13sp"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:text="Ссылка, куда ведёт баннер (обязательно, если загружаете файл)"
-                    android:textColor="@color/text_main"
-                    android:textSize="14sp"/>
-
-                <EditText
-                    android:id="@+id/et_camp_link"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:background="@drawable/bg_input"
-                    android:hint="https://yoursite.com"
-                    android:inputType="textUri"
-                    android:maxLines="1"
-                    android:padding="14dp"
-                    android:textColor="@color/text_main"
-                    android:textColorHint="@color/text_secondary"/>
 
                 <TextView
                     android:layout_width="wrap_content"
