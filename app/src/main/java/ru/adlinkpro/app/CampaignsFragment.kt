@@ -1,9 +1,15 @@
 package ru.adlinkpro.app
 
+import android.animation.ValueAnimator
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Paint
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -17,18 +23,33 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class CampaignsFragment : Fragment() {
     private var cats: List<String> = emptyList()
-    private val selected = mutableSetOf<String>()
     private var savedToken: String? = null
-    private var pricePerDay = 0.0
+    private var pricePerDay = 50.0
     private var minDays = 1
     private var maxDays = 365
-    private var isBanner = false
+    private var isBanner = true
+    private var promoId = 0
+    private var promoDiscount = 0.0
+    private var promoBonus = 0.0
+    private var balanceMain = 0.0
+    private var balanceAd = 0.0
+
+    private var pickBytes: ByteArray? = null
+    private var pickName = ""
+    private var pickMime = ""
+
+    private var blinkAnim: ValueAnimator? = null
+
+    private val pickBanner = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) handlePicked(uri)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_campaigns, container, false)
@@ -46,31 +67,49 @@ class CampaignsFragment : Fragment() {
         val etLink = view.findViewById<EditText>(R.id.et_camp_link)
         val etText = view.findViewById<EditText>(R.id.et_camp_text)
         val etColor = view.findViewById<EditText>(R.id.et_camp_color)
+        val cbUseColor = view.findViewById<CheckBox>(R.id.cb_camp_usecolor)
         val cbBlink = view.findViewById<CheckBox>(R.id.cb_camp_blink)
-        val etImg = view.findViewById<EditText>(R.id.et_camp_img)
-        val layText = view.findViewById<LinearLayout>(R.id.lay_text_fields)
-        val layBanner = view.findViewById<LinearLayout>(R.id.lay_banner_fields)
+        val tvPreview = view.findViewById<TextView>(R.id.tv_link_preview)
+        val etHtml = view.findViewById<EditText>(R.id.et_html_code)
+        val tvBannerFile = view.findViewById<TextView>(R.id.tv_banner_file)
         val etDays = view.findViewById<EditText>(R.id.et_camp_days)
-        val tvCats = view.findViewById<TextView>(R.id.tv_camp_cats)
-        val tvPrice = view.findViewById<TextView>(R.id.tv_camp_price)
+        val tvDaysNote = view.findViewById<TextView>(R.id.tv_days_note)
+        val tvPromoInfo = view.findViewById<TextView>(R.id.tv_promo_info)
+        val tvFinal = view.findViewById<TextView>(R.id.tv_final_calc)
+        val tvBalance = view.findViewById<TextView>(R.id.tv_balance)
+        val cbAgree = view.findViewById<CheckBox>(R.id.cb_agree_terms)
         val tvStatus = view.findViewById<TextView>(R.id.tv_camp_status)
 
-        // Переключение типа: текстовая ссылка / баннер
+        val updatePreview: () -> Unit = {
+            updatePreview(tvPreview, etText, etColor, cbUseColor, cbBlink)
+        }
+        etText.addTextChangedListener(simpleWatcher(updatePreview))
+        etColor.addTextChangedListener(simpleWatcher(updatePreview))
+        cbUseColor.setOnCheckedChangeListener { _, _ -> updatePreview() }
+        cbBlink.setOnCheckedChangeListener { _, _ -> updatePreview() }
+
+        // Переключение типа: баннер / текстовая ссылка (как на вебе, баннер по умолчанию)
         val spType = view.findViewById<Spinner>(R.id.sp_camp_type)
-        val types = listOf("Текстовая ссылка", "Баннер (изображение)")
+        val types = listOf("Баннер (изображение)", "Текстовая ссылка")
         val typeAdapter = ArrayAdapter(requireContext(), R.layout.spinner_item, types)
         typeAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
         spType.adapter = typeAdapter
+        val layText = view.findViewById<LinearLayout>(R.id.lay_text_fields)
+        val layBanner = view.findViewById<LinearLayout>(R.id.lay_banner_fields)
         spType.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p: android.widget.AdapterView<*>?, v: View?, pos: Int, id: Long) {
-                isBanner = pos == 1
+                isBanner = pos == 0
                 layText.visibility = if (isBanner) View.GONE else View.VISIBLE
                 layBanner.visibility = if (isBanner) View.VISIBLE else View.GONE
             }
             override fun onNothingSelected(p: android.widget.AdapterView<*>?) {}
         }
 
-        // Цена дня и границы срока — из админ-настроек сервера
+        view.findViewById<Button>(R.id.btn_pick_banner).setOnClickListener {
+            pickBanner.launch("image/*")
+        }
+
+        // Конфиг: цены, границы срока, балансы
         thread {
             try {
                 val json = Api.post("campaigns.php", mapOf("action" to "config"), savedToken)
@@ -78,19 +117,26 @@ class CampaignsFragment : Fragment() {
                     pricePerDay = json.optDouble("price_per_day", 50.0)
                     minDays = json.optInt("min_days", 1)
                     maxDays = json.optInt("max_days", 365)
-                    activity?.runOnUiThread { updatePrice(tvPrice, etDays.text.toString()) }
+                    balanceMain = json.optDouble("balance", 0.0)
+                    balanceAd = json.optDouble("ad_balance", 0.0)
+                    activity?.runOnUiThread {
+                        tvDaysNote.text = "Цена дня — " + trimNum(pricePerDay) + " ₽. Итог = срок × цена дня. Оплата за весь период: остаток не возвращается. Если модерация отклонит кампанию до запуска — деньги вернутся на баланс."
+                        tvBalance.text = balanceLine()
+                        updateFinal(tvFinal, etDays.text.toString())
+                    }
                 }
             } catch (_: Exception) {}
         }
 
-        // Живой пересчёт итога при вводе дней
         etDays.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-            override fun afterTextChanged(s: Editable?) { updatePrice(tvPrice, s?.toString() ?: "") }
+            override fun afterTextChanged(s: Editable?) {
+                updateFinal(tvFinal, s?.toString() ?: "")
+            }
         })
 
-        // Категории с сервера
+        // Категории с сервера — галочками, как на вебе
         thread {
             var names: List<String> = emptyList()
             try {
@@ -102,79 +148,67 @@ class CampaignsFragment : Fragment() {
             } catch (_: Exception) {}
             if (names.isEmpty()) names = listOf("Прочее")
             cats = names
+            activity?.runOnUiThread { buildCats(view) }
         }
 
-        // Тап по блоку категорий — диалог с галочками
-        tvCats.setOnClickListener {
-            if (cats.isEmpty()) return@setOnClickListener
-            val checked = cats.map { it in selected }.toBooleanArray()
-            AlertDialog.Builder(requireContext())
-                .setTitle("Категории показа")
-                .setMultiChoiceItems(cats.toTypedArray(), checked) { _, which, isChecked ->
-                    if (isChecked) selected.add(cats[which]) else selected.remove(cats[which])
+        // Проверка промокода
+        val etPromo = view.findViewById<EditText>(R.id.et_promo)
+        view.findViewById<Button>(R.id.btn_check_promo).setOnClickListener {
+            val code = etPromo.text.toString().trim().uppercase()
+            if (code.isEmpty()) {
+                promoId = 0; promoDiscount = 0.0; promoBonus = 0.0
+                tvPromoInfo.text = ""
+                updateFinal(tvFinal, etDays.text.toString())
+                return@setOnClickListener
+            }
+            tvPromoInfo.text = "⏳ Проверяем промокод..."
+            thread {
+                try {
+                    val json = Api.post("campaigns.php", mapOf("action" to "check_promo", "check_promo" to code), savedToken)
+                    activity?.runOnUiThread {
+                        if (json.optBoolean("ok")) {
+                            promoId = json.optInt("id")
+                            promoDiscount = json.optDouble("discount", 0.0)
+                            promoBonus = json.optDouble("bonus", 0.0)
+                            var info = "✅ Промокод активирован!"
+                            if (promoDiscount > 0) info += "\nСкидка: " + trimNum(promoDiscount) + "%"
+                            if (promoBonus > 0) info += "\nБонус: " + trimNum(promoBonus) + " ₽"
+                            tvPromoInfo.text = info
+                        } else {
+                            promoId = 0; promoDiscount = 0.0; promoBonus = 0.0
+                            tvPromoInfo.text = "❌ " + json.optString("msg", "Ошибка проверки промокода")
+                        }
+                        updateFinal(tvFinal, etDays.text.toString())
+                    }
+                } catch (e: Exception) {
+                    activity?.runOnUiThread {
+                        promoId = 0
+                        tvPromoInfo.text = "❌ Ошибка проверки промокода"
+                    }
                 }
-                .setPositiveButton("Выбрать") { d, _ ->
-                    tvCats.text = if (selected.isEmpty()) "Категории показа: не выбраны" else "Категории показа: " + selected.joinToString(", ")
-                    d.dismiss()
-                }
-                .setNegativeButton("Отмена") { d, _ -> d.dismiss() }
-                .show()
+            }
         }
 
         view.findViewById<Button>(R.id.btn_camp_create).setOnClickListener {
             val days = etDays.text.toString().toIntOrNull() ?: 0
-            if (days < minDays || days > maxDays) {
-                tvStatus.text = "Срок: от " + minDays + " до " + maxDays + " дней"
-                return@setOnClickListener
+            val pickedCats = mutableListOf<String>()
+            val box = view.findViewById<LinearLayout>(R.id.cats_box)
+            for (i in 0 until box.childCount) {
+                val v = box.getChildAt(i)
+                if (v is CheckBox && v.isChecked) pickedCats.add(v.text.toString())
             }
-            if (selected.isEmpty()) {
-                tvStatus.text = "Выберите хотя бы одну категорию показа"
-                return@setOnClickListener
-            }
-            if (!isBanner && etText.text.toString().trim().isEmpty()) {
-                tvStatus.text = "Введите текст ссылки"
-                return@setOnClickListener
-            }
-            if (isBanner && etImg.text.toString().trim().isEmpty()) {
-                tvStatus.text = "Укажите ссылку на картинку баннера"
-                return@setOnClickListener
-            }
-            tvStatus.text = "Создаём…"
-            thread {
-                try {
-                    val params = mapOf(
-                        "action" to "create",
-                        "type" to (if (isBanner) "banner" else "link"),
-                        "name" to etTitle.text.toString().trim(),
-                        "link" to etLink.text.toString().trim(),
-                        "ad_text" to etText.text.toString().trim(),
-                        "days" to days.toString(),
-                        "categories" to selected.joinToString(", "),
-                        "color" to etColor.text.toString().trim(),
-                        "blink" to (if (cbBlink.isChecked) "1" else "0"),
-                        "image" to etImg.text.toString().trim()
-                    )
-                    val json = Api.post("campaigns.php", params, savedToken)
-                    activity?.runOnUiThread {
-                        if (json.optBoolean("ok")) {
-                            etTitle.setText("")
-                            etLink.setText("")
-                            etText.setText("")
-                            etColor.setText("")
-                            cbBlink.isChecked = false
-                            etImg.setText("")
-                            etDays.setText("")
-                            selected.clear()
-                            tvCats.text = "Категории показа: не выбраны"
-                            updatePrice(tvPrice, "")
-                            tvStatus.text = "Кампания создана, оплата " + json.optString("total", "") + " ₽"
-                            load(view)
-                        } else {
-                            tvStatus.text = json.optString("error", "Ошибка")
-                        }
-                    }
-                } catch (e: Exception) {
-                    activity?.runOnUiThread { tvStatus.text = "Нет связи с сервером" }
+            when {
+                days < minDays || days > maxDays -> tvStatus.text = "Срок размещения должен быть от " + minDays + " до " + maxDays + " дней"
+                pickedCats.isEmpty() -> tvStatus.text = "Выберите хотя бы одну категорию площадок"
+                etTitle.text.toString().trim().isEmpty() -> tvStatus.text = "Введите название кампании"
+                !isBanner && etText.text.toString().trim().length < 3 -> tvStatus.text = "Укажите текст ссылки (минимум 3 символа)"
+                !isBanner && etLink.text.toString().trim().isEmpty() -> tvStatus.text = "Укажите ссылку, куда ведёт реклама"
+                isBanner && pickBytes == null && etHtml.text.toString().trim().isEmpty() -> tvStatus.text = "Загрузите файл баннера или укажите HTML-код"
+                isBanner && pickBytes != null && etLink.text.toString().trim().isEmpty() -> tvStatus.text = "Укажите ссылку, куда ведёт баннер"
+                !cbAgree.isChecked -> tvStatus.text = "Необходимо согласиться с условиями размещения рекламы"
+                else -> {
+                    tvStatus.text = "Создаём…"
+                    createCampaign(view, etTitle, etLink, etText, etColor, cbUseColor, cbBlink, etHtml, etPromo, days, pickedCats, tvStatus, tvBannerFile)
                 }
             }
         }
@@ -182,10 +216,193 @@ class CampaignsFragment : Fragment() {
         load(view)
     }
 
-    private fun updatePrice(tvPrice: TextView, daysRaw: String) {
+    private fun handlePicked(uri: Uri) {
+        thread {
+            var err = ""
+            var bytes: ByteArray? = null
+            var name = "banner"
+            var mime = ""
+            try {
+                val resolver = requireContext().contentResolver
+                mime = resolver.getType(uri) ?: ""
+                val opts = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, opts) }
+                val w = opts.outWidth
+                val h = opts.outHeight
+                if (w != 468 || h != 60) {
+                    err = "Размер баннера должен быть ровно 468×60 (сейчас " + w + "×" + h + ")"
+                } else {
+                    resolver.openInputStream(uri)?.use { bytes = it.readBytes() }
+                    if (bytes != null && bytes!!.size > 2 * 1024 * 1024) {
+                        err = "Файл больше 2 МБ"
+                        bytes = null
+                    } else {
+                        val ext = when (mime) {
+                            "image/png" -> "png"
+                            "image/jpeg" -> "jpg"
+                            "image/gif" -> "gif"
+                            "image/webp" -> "webp"
+                            else -> ""
+                        }
+                        if (ext.isEmpty()) err = "Разрешены только PNG, JPEG, GIF и WebP"
+                        name = "banner." + ext
+                    }
+                }
+            } catch (e: Exception) {
+                err = "Не удалось прочитать файл"
+            }
+            activity?.runOnUiThread {
+                pickBytes = bytes
+                pickName = name
+                pickMime = mime
+                val tv = view?.findViewById<TextView>(R.id.tv_banner_file)
+                if (tv != null) {
+                    tv.text = if (bytes != null) {
+                        "Выбран: " + name + ", " + (bytes!!.size / 1024) + " КБ, 468×60 ✓"
+                    } else "Файл не выбран. " + err
+                }
+            }
+        }
+    }
+
+    private fun createCampaign(
+        view: View,
+        etTitle: EditText, etLink: EditText, etText: EditText,
+        etColor: EditText, cbUseColor: CheckBox, cbBlink: CheckBox,
+        etHtml: EditText, etPromo: EditText,
+        days: Int, pickedCats: List<String>, tvStatus: TextView, tvBannerFile: TextView
+    ) {
+        val params = mapOf(
+            "action" to "create",
+            "type" to (if (isBanner) "banner" else "link"),
+            "name" to etTitle.text.toString().trim(),
+            "days" to days.toString(),
+            "categories" to pickedCats.joinToString(", "),
+            "agree_terms" to "1",
+            "promo_code" to etPromo.text.toString().trim(),
+            "link_text" to etText.text.toString().trim(),
+            "link_url" to etLink.text.toString().trim(),
+            "link_color" to etColor.text.toString().trim(),
+            "use_color" to (if (cbUseColor.isChecked) "1" else "0"),
+            "link_blink" to (if (cbBlink.isChecked) "1" else "0"),
+            "html_code" to etHtml.text.toString().trim(),
+            "banner_url" to etLink.text.toString().trim()
+        )
+        thread {
+            try {
+                val json = if (isBanner && pickBytes != null) {
+                    ApiUpload.upload("campaigns.php", params, pickBytes!!, pickName, pickMime, savedToken)
+                } else {
+                    Api.post("campaigns.php", params, savedToken)
+                }
+                activity?.runOnUiThread {
+                    if (json.optBoolean("ok")) {
+                        etTitle.setText("")
+                        etText.setText("")
+                        etColor.setText("")
+                        cbUseColor.isChecked = false
+                        cbBlink.isChecked = false
+                        etHtml.setText("")
+                        etPromo.setText("")
+                        pickBytes = null
+                        pickName = ""
+                        view.findViewById<TextView>(R.id.tv_banner_file).text = "Файл не выбран"
+                        tvBannerFile.text = "Файл не выбран"
+                        var okMsg = "✅ Кампания создана и отправлена на модерацию! К списанию: " + json.optString("total", "") + " ₽"
+                        val disc = json.optString("discount", "")
+                        val bonus = json.optString("bonus", "")
+                        if (disc.toDoubleOrNull() ?: 0.0 > 0) okMsg += " • Скидка " + disc + " ₽"
+                        if (bonus.toDoubleOrNull() ?: 0.0 > 0) okMsg += " • Бонус " + bonus + " ₽"
+                        tvStatus.text = okMsg
+                        thread {
+                            try {
+                                val cfg = Api.post("campaigns.php", mapOf("action" to "config"), savedToken)
+                                if (cfg.optBoolean("ok")) {
+                                    balanceMain = cfg.optDouble("balance", 0.0)
+                                    balanceAd = cfg.optDouble("ad_balance", 0.0)
+                                    activity?.runOnUiThread {
+                                        view.findViewById<TextView>(R.id.tv_balance).text = balanceLine()
+                                    }
+                                }
+                            } catch (_: Exception) {}
+                        }
+                        load(view)
+                    } else {
+                        tvStatus.text = json.optString("error", "Ошибка")
+                    }
+                }
+            } catch (e: Exception) {
+                activity?.runOnUiThread { tvStatus.text = "Нет связи с сервером" }
+            }
+        }
+    }
+
+    private fun buildCats(view: View) {
+        val box = view.findViewById<LinearLayout>(R.id.cats_box)
+        box.removeAllViews()
+        for (n in cats) {
+            val cb = CheckBox(requireContext())
+            cb.text = n
+            cb.textSize = 14f
+            cb.setTextColor(Color.parseColor("#1E293B"))
+            box.addView(cb)
+        }
+    }
+
+    private fun updatePreview(tv: TextView, etText: EditText, etColor: EditText, cbUseColor: CheckBox, cbBlink: CheckBox) {
+        blinkAnim?.cancel()
+        blinkAnim = null
+        tv.text = if (etText.text.toString().trim().isNotEmpty()) etText.text.toString().trim() else "Ваш текст ссылки"
+        tv.paintFlags = tv.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        tv.setTextColor(if (cbUseColor.isChecked && etColor.text.toString().matches(Regex("#[0-9a-fA-F]{6}"))) {
+            Color.parseColor(etColor.text.toString())
+        } else Color.parseColor("#2563eb"))
+        if (cbBlink.isChecked) {
+            val a = ValueAnimator.ofFloat(1f, 0.3f)
+            a.duration = 500
+            a.repeatCount = ValueAnimator.INFINITE
+            a.repeatMode = ValueAnimator.REVERSE
+            a.addUpdateListener { tv.alpha = it.animatedValue as Float }
+            a.start()
+            blinkAnim = a
+        } else {
+            tv.alpha = 1f
+        }
+    }
+
+    private fun updateFinal(tvFinal: TextView, daysRaw: String) {
         val d = daysRaw.toIntOrNull() ?: 0
-        val total = if (d in 1..maxDays) d * pricePerDay else 0.0
-        tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: " + trimNum(total) + " ₽"
+        if (d <= 0) {
+            tvFinal.visibility = View.GONE
+            return
+        }
+        val cost = d * pricePerDay
+        val discount = cost * promoDiscount / 100.0
+        val final = cost - discount + promoBonus
+        if (promoId == 0 && promoBonus <= 0) {
+            tvFinal.visibility = View.GONE
+            return
+        }
+        var txt = "Срок: " + d + " дн.\nСтоимость: " + trimNum(cost) + " ₽"
+        if (discount > 0) txt += "\nСкидка: -" + trimNum(discount) + " ₽"
+        if (promoBonus > 0) txt += "\nБонус: +" + trimNum(promoBonus) + " ₽"
+        txt += "\nК списанию: " + trimNum(final) + " ₽"
+        tvFinal.text = txt
+        tvFinal.visibility = View.VISIBLE
+    }
+
+    private fun balanceLine(): String {
+        var t = "Ваш баланс: " + trimNum(balanceMain) + " ₽"
+        if (balanceAd > 0) t += " + рекламный баланс: " + trimNum(balanceAd) + " ₽"
+        return t
+    }
+
+    private fun simpleWatcher(f: () -> Unit): TextWatcher {
+        return object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
+            override fun afterTextChanged(s: Editable?) { f() }
+        }
     }
 
     private fun trimNum(v: Double): String {
@@ -245,15 +462,6 @@ class CampaignsFragment : Fragment() {
         title.setTextColor(Color.parseColor("#1E293B"))
         title.setTypeface(title.typeface, Typeface.BOLD)
 
-        val adText = TextView(ctx)
-        val t = c.optString("ad_text")
-        if (t.isNotEmpty()) {
-            adText.text = t
-            adText.textSize = 13f
-            adText.setTextColor(Color.parseColor("#334155"))
-            box.addView(adText)
-        }
-
         val link = TextView(ctx)
         link.text = c.optString("link")
         link.textSize = 13f
@@ -283,7 +491,7 @@ class CampaignsFragment : Fragment() {
         val st = TextView(ctx)
         st.textSize = 13f
         when (c.optString("status")) {
-            "active"  -> { st.text = "▶️ Активна"; st.setTextColor(Color.parseColor("#10B981")) }
+            "active"  -> { st.text = "✅ Активна"; st.setTextColor(Color.parseColor("#10B981")) }
             "pending" -> { st.text = "⏳ На модерации"; st.setTextColor(Color.parseColor("#F59E0B")) }
             "paused"  -> { st.text = "⏸ На паузе"; st.setTextColor(Color.parseColor("#64748B")) }
             "expired" -> { st.text = "🏁 Завершена"; st.setTextColor(Color.parseColor("#64748B")) }
@@ -295,6 +503,13 @@ class CampaignsFragment : Fragment() {
         }
 
         box.addView(title)
+        if (c.optString("ad_text").isNotEmpty() && c.optString("type") == "link") {
+            val adText = TextView(ctx)
+            adText.text = c.optString("ad_text")
+            adText.textSize = 13f
+            adText.setTextColor(Color.parseColor("#334155"))
+            box.addView(adText)
+        }
         box.addView(link)
         box.addView(catsV)
         box.addView(money)
