@@ -518,6 +518,11 @@ class CampaignsFragment : Fragment() {
         money.textSize = 13f
         money.setTextColor(Color.parseColor("#64748B"))
 
+        val stats = TextView(ctx)
+        stats.text = "👁 " + c.optInt("impr") + " • 🖱 " + c.optInt("clicks") + " • CTR: " + trimNum(c.optDouble("ctr", 0.0)) + "%"
+        stats.textSize = 13f
+        stats.setTextColor(Color.parseColor("#334155"))
+
         val st = TextView(ctx)
         st.textSize = 13f
         when (c.optString("status")) {
@@ -543,6 +548,7 @@ class CampaignsFragment : Fragment() {
         box.addView(link)
         box.addView(catsV)
         box.addView(money)
+        box.addView(stats)
         box.addView(st)
 
         if (c.optString("status") == "active") {
@@ -552,6 +558,18 @@ class CampaignsFragment : Fragment() {
             btn.setOnClickListener {
                 thread {
                     Api.post("campaigns.php", mapOf("action" to "stop", "id" to c.optInt("id").toString()), savedToken)
+                    activity?.runOnUiThread { view?.let { load(it) } }
+                }
+            }
+            box.addView(btn)
+        }
+        if (c.optString("status") == "paused") {
+            val btn = Button(ctx)
+            btn.text = "Возобновить"
+            btn.textSize = 13f
+            btn.setOnClickListener {
+                thread {
+                    Api.post("campaigns.php", mapOf("action" to "resume", "id" to c.optInt("id").toString()), savedToken)
                     activity?.runOnUiThread { view?.let { load(it) } }
                 }
             }
