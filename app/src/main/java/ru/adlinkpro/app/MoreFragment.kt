@@ -58,15 +58,19 @@ class MoreFragment : Fragment() {
         }
 
         view.findViewById<TextView>(R.id.row_deposit).setOnClickListener {
+            val f = WalletFragment()
+            f.arguments = Bundle().apply { putString("section", "deposit") }
             parentFragmentManager.beginTransaction()
-                .replace(R.id.container, WalletFragment())
+                .replace(R.id.container, f)
                 .addToBackStack(null)
                 .commit()
         }
 
         view.findViewById<TextView>(R.id.row_withdraw).setOnClickListener {
+            val f = WalletFragment()
+            f.arguments = Bundle().apply { putString("section", "withdraw") }
             parentFragmentManager.beginTransaction()
-                .replace(R.id.container, WalletFragment())
+                .replace(R.id.container, f)
                 .addToBackStack(null)
                 .commit()
         }
