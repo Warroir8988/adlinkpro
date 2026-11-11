@@ -83,12 +83,14 @@ class CampaignsFragment : Fragment() {
             } catch (_: Exception) {}
         }
 
+        // Живой пересчёт итога при вводе дней
         etDays.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
             override fun afterTextChanged(s: Editable?) { updatePrice(tvPrice, s?.toString() ?: "") }
         })
 
+        // Категории с сервера
         thread {
             var names: List<String> = emptyList()
             try {
@@ -102,6 +104,7 @@ class CampaignsFragment : Fragment() {
             cats = names
         }
 
+        // Тап по блоку категорий — диалог с галочками
         tvCats.setOnClickListener {
             if (cats.isEmpty()) return@setOnClickListener
             val checked = cats.map { it in selected }.toBooleanArray()
@@ -244,9 +247,12 @@ class CampaignsFragment : Fragment() {
 
         val adText = TextView(ctx)
         val t = c.optString("ad_text")
-        if (t.isNotEmpty()) adText.text = t
-        adText.textSize = 13f
-        adText.setTextColor(Color.parseColor("#334155"))
+        if (t.isNotEmpty()) {
+            adText.text = t
+            adText.textSize = 13f
+            adText.setTextColor(Color.parseColor("#334155"))
+            box.addView(adText)
+        }
 
         val link = TextView(ctx)
         link.text = c.optString("link")
@@ -289,7 +295,6 @@ class CampaignsFragment : Fragment() {
         }
 
         box.addView(title)
-        if (t.isNotEmpty()) box.addView(adText)
         box.addView(link)
         box.addView(catsV)
         box.addView(money)
