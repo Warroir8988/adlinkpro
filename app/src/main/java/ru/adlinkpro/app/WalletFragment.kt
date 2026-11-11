@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -43,6 +42,19 @@ class WalletFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val sp = requireContext().getSharedPreferences("app", Context.MODE_PRIVATE)
         savedToken = sp.getString("token", null)
+
+        // Секция: deposit / withdraw / all — прячем ненужную карточку и меняем заголовок
+        val section = arguments?.getString("section") ?: "all"
+        val layDepCard = view.findViewById<LinearLayout>(R.id.lay_dep_card)
+        val layWdCard = view.findViewById<LinearLayout>(R.id.lay_wd_card)
+        val tvTitle = view.findViewById<TextView>(R.id.tv_wallet_title)
+        if (section == "deposit") {
+            layWdCard.visibility = View.GONE
+            tvTitle.text = "💰 Пополнение"
+        } else if (section == "withdraw") {
+            layDepCard.visibility = View.GONE
+            tvTitle.text = "💸 Вывод средств"
+        }
 
         view.findViewById<TextView>(R.id.tv_wallet_back).setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -321,7 +333,6 @@ class WalletFragment : Fragment() {
                         val bankAdapter = ArrayAdapter(requireContext(), R.layout.spinner_item, bankNames)
                         bankAdapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
                         spBank.adapter = bankAdapter
-                        tvWdInfo.text = "Комиссия вывода: " + trimNum(commissionPct) + "% · Минимум: " + trimNum(minWithdraw) + " ₽ · Доступно: " + trimNum(balanceMain) + " ₽"
                         view.findViewById<TextView>(R.id.tv_wd_status).text = ""
                     }
                 } else err = json.optString("error", "Ошибка")
