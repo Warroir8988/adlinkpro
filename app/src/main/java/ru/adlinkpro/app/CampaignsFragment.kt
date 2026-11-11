@@ -10,23 +10,21 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class CampaignsFragment : Fragment() {
-    private data class Site(val id: Int, val label: String)
-    private var sites: List<Site> = emptyList()
+    private var cats: List<String> = emptyList()
+    private val selected = mutableSetOf<String>()
     private var savedToken: String? = null
     private var pricePerDay = 0.0
     private var minDays = 1
     private var maxDays = 365
-    private var selectedCats = ""
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         return inflater.inflate(R.layout.fragment_campaigns, container, false)
@@ -40,14 +38,15 @@ class CampaignsFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        val spSite = view.findViewById<Spinner>(R.id.sp_camp_site)
         val etTitle = view.findViewById<EditText>(R.id.et_camp_title)
+        val etLink = view.findViewById<EditText>(R.id.et_camp_link)
         val etText = view.findViewById<EditText>(R.id.et_camp_text)
         val etDays = view.findViewById<EditText>(R.id.et_camp_days)
+        val tvCats = view.findViewById<TextView>(R.id.tv_camp_cats)
         val tvPrice = view.findViewById<TextView>(R.id.tv_camp_price)
         val tvStatus = view.findViewById<TextView>(R.id.tv_camp_status)
 
-        // Цена и границы из админ-настроек
+        // Цена дня и границы срока — из админ-настроек сервера
         thread {
             try {
                 val json = Api.post("campaigns.php", mapOf("action" to "config"), savedToken)
@@ -55,25 +54,19 @@ class CampaignsFragment : Fragment() {
                     pricePerDay = json.optDouble("price_per_day", 50.0)
                     minDays = json.optInt("min_days", 1)
                     maxDays = json.optInt("max_days", 365)
-                    activity?.runOnUiThread {
-                        tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: 0 ₽"
-                    }
+                    activity?.runOnUiThread { updatePrice(tvPrice, etDays.text.toString()) }
                 }
             } catch (_: Exception) {}
         }
 
-        // Живой пересчёт итога
+        // Живой пересчёт итога при вводе дней
         etDays.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
             override fun onTextChanged(s: CharSequence?, a: Int, b: Int, c: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val d = s?.toString()?.toIntOrNull() ?: 0
-                val total = if (d in 1..maxDays) d * pricePerDay else 0.0
-                tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: " + trimNum(total) + " ₽"
-            }
+            override fun afterTextChanged(s: Editable?) { updatePrice(tvPrice, s?.toString() ?: "") }
         })
 
-        // Выбор категорий (те же имена, что на экране сайтов)
+        // Категории с сервера (те же названия, что на вебе)
         thread {
             var names: List<String> = emptyList()
             try {
@@ -83,40 +76,37 @@ class CampaignsFragment : Fragment() {
                     for (i in 0 until (arr?.length() ?: 0)) names += arr!!.getString(i)
                 }
             } catch (_: Exception) {}
-            if (names.isNotEmpty()) {
-                val cats = names
-                activity?.runOnUiThread {
-                    androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                    // категории выбираются тапом по строке цены — открываем диалог
-                    tvPrice.setOnClickListener {
-                        val chosen = selectedCats.split(",").filter { it.isNotBlank() }.toSet()
-                        val checked = cats.map { it in chosen }.toBooleanArray()
-                        androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                            .setTitle("Категории показа")
-                            .setMultiChoiceItems(cats.toTypedArray(), checked) { _, which, isChecked ->
-                                val set = selectedCats.split(",").filter { it.isNotBlank() }.toMutableSet()
-                                if (isChecked) set.add(cats[which]) else set.remove(cats[which])
-                                selectedCats = set.joinToString(", ")
-                            }
-                            .setPositiveButton("Выбрать") { d, _ -> d.dismiss() }
-                            .setNegativeButton("Отмена") { d, _ -> d.dismiss() }
-                            .show()
-                    }
+            if (names.isEmpty()) names = listOf("Прочее")
+            cats = names
+        }
+
+        // Тап по блоку категорий — диалог с галочками
+        tvCats.setOnClickListener {
+            if (cats.isEmpty()) return@setOnClickListener
+            val checked = cats.map { it in selected }.toBooleanArray()
+            AlertDialog.Builder(requireContext())
+                .setTitle("Категории показа")
+                .setMultiChoiceItems(cats.toTypedArray(), checked) { _, which, isChecked ->
+                    if (isChecked) selected.add(cats[which]) else selected.remove(cats[which])
                 }
-            }
+                .setPositiveButton("Выбрать") { d, _ ->
+                    tvCats.text = if (selected.isEmpty()) "Категории показа: не выбраны" else "Категории показа: " + selected.joinToString(", ")
+                    d.dismiss()
+                }
+                .setNegativeButton("Отмена") { d, _ -> d.dismiss() }
+                .show()
         }
 
         view.findViewById<Button>(R.id.btn_camp_create).setOnClickListener {
-            if (sites.isEmpty()) {
-                tvStatus.text = "Нет одобренных сайтов — сначала добавьте сайт"
-                return@setOnClickListener
-            }
             val days = etDays.text.toString().toIntOrNull() ?: 0
             if (days < minDays || days > maxDays) {
                 tvStatus.text = "Срок: от " + minDays + " до " + maxDays + " дней"
                 return@setOnClickListener
             }
-            val site = sites[spSite.selectedItemPosition]
+            if (selected.isEmpty()) {
+                tvStatus.text = "Выберите хотя бы одну категорию показа"
+                return@setOnClickListener
+            }
             tvStatus.text = "Создаём…"
             thread {
                 try {
@@ -124,20 +114,24 @@ class CampaignsFragment : Fragment() {
                         "campaigns.php",
                         mapOf(
                             "action" to "create",
-                            "site_id" to site.id.toString(),
                             "name" to etTitle.text.toString().trim(),
+                            "link" to etLink.text.toString().trim(),
                             "ad_text" to etText.text.toString().trim(),
                             "days" to days.toString(),
-                            "categories" to selectedCats
+                            "categories" to selected.joinToString(", ")
                         ),
                         savedToken
                     )
                     activity?.runOnUiThread {
                         if (json.optBoolean("ok")) {
                             etTitle.setText("")
+                            etLink.setText("")
                             etText.setText("")
                             etDays.setText("")
-                            tvStatus.text = ""
+                            selected.clear()
+                            tvCats.text = "Категории показа: не выбраны"
+                            updatePrice(tvPrice, "")
+                            tvStatus.text = "Кампания создана, оплата " + json.optString("total", "") + " ₽"
                             load(view)
                         } else {
                             tvStatus.text = json.optString("error", "Ошибка")
@@ -149,37 +143,17 @@ class CampaignsFragment : Fragment() {
             }
         }
 
-        loadSites(view)
         load(view)
+    }
+
+    private fun updatePrice(tvPrice: TextView, daysRaw: String) {
+        val d = daysRaw.toIntOrNull() ?: 0
+        val total = if (d in 1..maxDays) d * pricePerDay else 0.0
+        tvPrice.text = "Цена дня: " + trimNum(pricePerDay) + " ₽ • Срок: " + minDays + "–" + maxDays + " дн. • Итого: " + trimNum(total) + " ₽"
     }
 
     private fun trimNum(v: Double): String {
         return if (v == v.toLong().toDouble()) v.toLong().toString() else String.format("%.2f", v)
-    }
-
-    private fun loadSites(view: View) {
-        thread {
-            val found = mutableListOf<Site>()
-            try {
-                val json = Api.post("sites.php", mapOf("action" to "list"), savedToken)
-                if (json.optBoolean("ok")) {
-                    val arr = json.optJSONArray("sites")
-                    for (i in 0 until (arr?.length() ?: 0)) {
-                        val s = arr!!.getJSONObject(i)
-                        if (s.optString("status") == "approved") {
-                            found += Site(s.optInt("id"), s.optString("name") + " — " + s.optString("url"))
-                        }
-                    }
-                }
-            } catch (_: Exception) {}
-            activity?.runOnUiThread {
-                sites = found
-                val labels = if (found.isEmpty()) listOf("Нет одобренных сайтов") else found.map { it.label }
-                val adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, labels)
-                adapter.setDropDownViewResource(R.layout.spinner_dropdown_item)
-                view.findViewById<Spinner>(R.id.sp_camp_site).adapter = adapter
-            }
-        }
     }
 
     private fun load(view: View) {
@@ -235,15 +209,15 @@ class CampaignsFragment : Fragment() {
         title.setTextColor(Color.parseColor("#1E293B"))
         title.setTypeface(title.typeface, Typeface.BOLD)
 
-        val site = TextView(ctx)
-        site.text = "Сайт: " + c.optString("site_url", c.optString("link"))
-        site.textSize = 13f
-        site.setTextColor(Color.parseColor("#64748B"))
-
         val adText = TextView(ctx)
         adText.text = c.optString("ad_text")
         adText.textSize = 13f
         adText.setTextColor(Color.parseColor("#334155"))
+
+        val link = TextView(ctx)
+        link.text = c.optString("link")
+        link.textSize = 13f
+        link.setTextColor(Color.parseColor("#64748B"))
 
         val cats = TextView(ctx)
         cats.text = "Категории: " + c.optString("cats", "—")
@@ -251,7 +225,7 @@ class CampaignsFragment : Fragment() {
         cats.setTextColor(Color.parseColor("#64748B"))
 
         val money = TextView(ctx)
-        money.text = "Срок: " + c.optInt("days").toString() + " дн. • Бюджет: " + c.optString("budget") + " ₽"
+        money.text = "Срок: " + c.optInt("days").toString() + " дн. • Оплачено: " + c.optString("paid") + " ₽"
         if (c.optString("start").isNotEmpty()) {
             money.text = money.text.toString() + " • " + c.optString("start") + " → " + c.optString("end")
         }
@@ -272,17 +246,16 @@ class CampaignsFragment : Fragment() {
             else -> st.text = c.optString("status")
         }
 
-        box.addView(title); box.addView(site); box.addView(adText); box.addView(cats); box.addView(money); box.addView(st)
+        box.addView(title); box.addView(adText); box.addView(link); box.addView(cats); box.addView(money); box.addView(st)
 
         if (c.optString("status") == "active") {
-            val btn = Button(ctx).apply {
-                this.text = "Пауза"
-                textSize = 13f
-                setOnClickListener {
-                    thread {
-                        Api.post("campaigns.php", mapOf("action" to "stop", "id" to c.optInt("id").toString()), savedToken)
-                        activity?.runOnUiThread { view?.let { load(it) } }
-                    }
+            val btn = Button(ctx)
+            btn.text = "Пауза"
+            btn.textSize = 13f
+            btn.setOnClickListener {
+                thread {
+                    Api.post("campaigns.php", mapOf("action" to "stop", "id" to c.optInt("id").toString()), savedToken)
+                    activity?.runOnUiThread { view?.let { load(it) } }
                 }
             }
             box.addView(btn)
