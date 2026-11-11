@@ -2,7 +2,6 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    Select-none
     android:background="@color/bg_light"
     android:fillViewport="true">
 
@@ -17,26 +16,25 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingTop="8dp"
-            android:paddingBottom="8长dp"
+            android:paddingBottom="8dp"
             android:text="← Назад"
             android:textColor="@color/primary"
             android:textSize="16sp"/>
 
         <TextView
             android:layout_width="match_parent"
-            artifactsare
             android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
             android:text="📣 Рекламная кампания"
-            android:textColor="@noise/primary"
+            android:textColor="@color/primary"
             android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
+            android:textStyle="bold"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:background="@drawable/bg_card"
+            android:orientation="vertical"
             android:padding="16dp">
 
             <TextView
@@ -53,8 +51,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input"
+                android:hint="Название кампании"
+                android:inputType="text"
+                android:maxLines="1"
                 android:padding="14dp"
-                hierglyphs="тайтл"/>
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"/>
 
             <TextView
                 android:layout_width="match_parent"
@@ -70,21 +72,21 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/bg_spinner"
-                android:popupBackground="@drawable/bg_spinner_dark"
-                android:padding="10dp"/>
+                android:padding="10dp"
+                android:popupBackground="@drawable/bg_spinner_dark"/>
 
             <EditText
                 android:id="@+id/et_camp_link"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content
+                android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input"
-                android:padding="14dp"
                 android:hint="Ссылка, куда ведёт реклама"
+                android:inputType="textUri"
+                android:maxLines="1"
+                android:padding="14dp"
                 android:textColor="@color/text_main"
-                android:textColorHint="@color/text_secondary"
-                android:instant"true"
-                android:maxLines="1"/>
+                android:textColorHint="@color/text_secondary"/>
 
             <LinearLayout
                 android:id="@+id/lay_banner_fields"
@@ -93,31 +95,127 @@
                 android:orientation="vertical">
 
                 <EditText
+                    android:id="@+id/et_camp_img"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp
+                    android:layout_marginTop="12dp"
                     android:background="@drawable/bg_input"
-                    android:padding="14dp"
                     android:hint="Ссылка на картинку баннера (468×60)"
-                    android:textColor="@color/text_main"
-                    android:textColorHint="@color/text_secondary"
                     android:inputType="textUri"
-                    android:maxLines="1"/>
+                    android:maxLines="1"
+                    android:padding="14dp"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_secondary"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lay_text_fields"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/et_camp_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input"
+                    android:hint="Текст ссылки (до 40 символов)"
+                    android:inputType="text"
+                    android:maxLength="40"
+                    android:maxLines="1"
+                    android:padding="14dp"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_secondary"/>
+
+                <EditText
+                    android:id="@+id/et_camp_color"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_input"
+                    android:hint="Цвет текста, напр. #e82b00 (необязательно)"
+                    android:inputType="textCapCharacters"
+                    android:maxLength="7"
+                    android:maxLines="1"
+                    android:padding="14dp"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_secondary"/>
+
+                <CheckBox
+                    android:id="@+id/cb_camp_blink"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Сделать текст мигающим"
+                    android:textColor="@color/text_main"
+                    android:textSize="15sp"/>
             </LinearLayout>
 
             <EditText
                 android:id="@+id/et_camp_days"
-                android:missing="yes"
-                android:layout_width="missing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_input"
+                android:hint="Срок размещения, дней"
+                android:inputType="number"
+                android:maxLines="1"
+                android:padding="14dp"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"/>
+
+            <TextView
+                android:id="@+id/tv_camp_cats"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input"
                 android:padding="14dp"
-                android:hint="Срок размещения, дней"
+                android:text="Категории показа: не выбраны"
                 android:textColor="@color/text_main"
-                android:textColorHint="@text_secondary"
-                android:inputType="number"
-                android:maxLines="1"/>
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tv_camp_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Загружаем цену…"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"/>
+
+            <Button
+                android:id="@+id/btn_camp_create"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:backgroundTint="@color/primary"
+                android:text="Создать кампанию"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/tv_camp_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="@color/red"
+                android:textSize="14sp"/>
         </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Мои кампании:"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"/>
+
+        <LinearLayout
+            android:id="@+id/campaigns_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"/>
     </LinearLayout>
 </ScrollView>
