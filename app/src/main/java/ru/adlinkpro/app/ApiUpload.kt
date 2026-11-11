@@ -15,6 +15,11 @@ object ApiUpload {
         mime: String,
         token: String?
     ): org.json.JSONObject {
+        val allParams = LinkedHashMap<String, String>(params)
+        if (!token.isNullOrEmpty() && !allParams.containsKey("token")) {
+            allParams["token"] = token
+        }
+
         val boundary = "----AdLinkPro" + System.currentTimeMillis()
         val conn = (URL(BASE + file).openConnection()) as HttpURLConnection
         conn.requestMethod = "POST"
@@ -25,7 +30,7 @@ object ApiUpload {
         if (!token.isNullOrEmpty()) conn.setRequestProperty("Authorization", "Bearer " + token)
 
         val out = DataOutputStream(conn.outputStream)
-        for ((k, v) in params) {
+        for ((k, v) in allParams) {
             out.writeBytes("--" + boundary + "\r\n")
             out.writeBytes("Content-Disposition: form-data; name=\"" + k + "\"\r\n\r\n")
             out.writeBytes(v + "\r\n")
