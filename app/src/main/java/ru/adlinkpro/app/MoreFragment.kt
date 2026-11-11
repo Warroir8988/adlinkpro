@@ -50,6 +50,13 @@ class MoreFragment : Fragment() {
                 .commit()
         }
 
+        view.findViewById<TextView>(R.id.row_showcase).setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, ShowcaseFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
         val stubs = mapOf(
             R.id.row_deposit to "Пополнение",
             R.id.row_withdraw to "Вывод средств",
