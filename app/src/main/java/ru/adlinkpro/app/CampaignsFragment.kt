@@ -27,10 +27,37 @@ import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class CampaignsFragment : Fragment() {
+    // Категории — точная копия вебовского списка (campaign_add.php), код + название
     private data class CatItem(val code: String, val name: String)
-    private var catItems: List<CatItem> = emptyList()
+    private val catItems = listOf(
+        CatItem("earn", "Инвестиции, заработок и фермы"),
+        CatItem("promo", "Реклама и партнерские программы"),
+        CatItem("faucets", "Раздача бонусов (краны)"),
+        CatItem("info", "Информационные сайты и сервисы"),
+        CatItem("auto", "Авто, мото и другой транспорт"),
+        CatItem("nature", "Животные и растения"),
+        CatItem("games", "Игры для компьютеров и консолей"),
+        CatItem("health", "Медицина, фитнес и здоровье"),
+        CatItem("gadgets", "Мобильные телефоны и гаджеты"),
+        CatItem("movies", "Музыка, искусство и кино"),
+        CatItem("tech", "Наука и техника"),
+        CatItem("realestate", "Недвижимость и строительство"),
+        CatItem("news", "Новости и СМИ"),
+        CatItem("travel", "Путешествия и туризм"),
+        CatItem("files", "Софт, операционные системы и торренты"),
+        CatItem("social", "Социальные сети, форумы и порталы"),
+        CatItem("sport", "Спорт и ставки"),
+        CatItem("business", "Товары, услуги и бизнес"),
+        CatItem("seo", "SEO и создание сайтов"),
+        CatItem("shop", "Интернет-магазины"),
+        CatItem("crypto", "Крипта"),
+        CatItem("casino", "Казино / лотереи"),
+        CatItem("dating", "Дейтинг / знакомства"),
+        CatItem("finance", "Финансы / кредиты"),
+        CatItem("other", "Прочее")
+    )
     private val selectedCats = mutableSetOf<String>()
-    private val catRows = mutableListOf<Pair<String, LinearLayout>>()
+
     private var savedToken: String? = null
     private var pricePerDay = 50.0
     private var minDays = 1
@@ -72,7 +99,6 @@ class CampaignsFragment : Fragment() {
         val cbBlink = view.findViewById<CheckBox>(R.id.cb_camp_blink)
         val tvPreview = view.findViewById<TextView>(R.id.tv_link_preview)
         val etHtml = view.findViewById<EditText>(R.id.et_html_code)
-        val tvBannerFile = view.findViewById<TextView>(R.id.tv_banner_file)
         val etDays = view.findViewById<EditText>(R.id.et_camp_days)
         val tvDaysNote = view.findViewById<TextView>(R.id.tv_days_note)
         val tvPromoInfo = view.findViewById<TextView>(R.id.tv_promo_info)
@@ -137,23 +163,7 @@ class CampaignsFragment : Fragment() {
             }
         })
 
-        // Категории с сервера: код + название (как на вебе, таргетинг по кодам)
-        thread {
-            var items: List<CatItem> = emptyList()
-            try {
-                val json = Api.post("campaigns.php", mapOf("action" to "cats"), savedToken)
-                if (json.optBoolean("ok")) {
-                    val arr = json.optJSONArray("cats")
-                    for (i in 0 until (arr?.length() ?: 0)) {
-                        val o = arr!!.getJSONObject(i)
-                        items += CatItem(o.optString("code"), o.optString("name"))
-                    }
-                }
-            } catch (_: Exception) {}
-            if (items.isEmpty()) items = listOf(CatItem("other", "Прочее"))
-            catItems = items
-            activity?.runOnUiThread { buildCats(view) }
-        }
+        buildCats(view)
 
         // Проверка промокода
         val etPromo = view.findViewById<EditText>(R.id.et_promo)
@@ -308,7 +318,6 @@ class CampaignsFragment : Fragment() {
                         pickBytes = null
                         pickName = ""
                         selectedCats.clear()
-                        for ((_, row) in catRows) setRowChecked(row, false)
                         view.findViewById<TextView>(R.id.tv_banner_file).text = "Файл не выбран"
                         val disc = json.optString("discount", "0").toDoubleOrNull() ?: 0.0
                         val bonus = json.optString("bonus", "0").toDoubleOrNull() ?: 0.0
@@ -342,7 +351,6 @@ class CampaignsFragment : Fragment() {
     private fun buildCats(view: View) {
         val box = view.findViewById<LinearLayout>(R.id.cats_box)
         box.removeAllViews()
-        catRows.clear()
         selectedCats.clear()
         for (item in catItems) {
             val row = LinearLayout(requireContext())
@@ -367,19 +375,12 @@ class CampaignsFragment : Fragment() {
             row.setOnClickListener {
                 val code = row.tag as String
                 val now = !selectedCats.contains(code)
-                setRowChecked(row, now)
                 if (now) selectedCats.add(code) else selectedCats.remove(code)
+                sq.text = if (now) "☑" else "☐"
+                nameTv.setTypeface(nameTv.typeface, if (now) Typeface.BOLD else Typeface.NORMAL)
             }
             box.addView(row)
-            catRows.add(item.code to row)
         }
-    }
-
-    private fun setRowChecked(row: LinearLayout, checked: Boolean) {
-        val sq = row.getChildAt(0) as TextView
-        sq.text = if (checked) "☑" else "☐"
-        val nameTv = row.getChildAt(1) as TextView
-        nameTv.setTypeface(nameTv.typeface, if (checked) Typeface.BOLD else Typeface.NORMAL)
     }
 
     private fun updatePreview(tv: TextView, etText: EditText, etColor: EditText, cbUseColor: CheckBox, cbBlink: CheckBox) {
