@@ -34,13 +34,21 @@ class NotificationsFragment : Fragment() {
         view.findViewById<TextView>(R.id.btn_mark_all).setOnClickListener {
             thread {
                 try {
-                    Api.post("notifications.php", mapOf("action" to "mark_all"), savedToken)
-                    activity?.runOnUiThread { load(view) }
+                    Api.post("notifications.php", mapOf("action" to "read_all"), savedToken)
+                    activity?.runOnUiThread {
+                        refreshBadge()
+                        load(view)
+                    }
                 } catch (_: Exception) {}
             }
         }
 
         load(view)
+    }
+
+    // is_read может прийти как true/false или 0/1 — учитываем оба варианта
+    private fun isRead(n: org.json.JSONObject): Boolean {
+        return n.optBoolean("is_read", false) || n.optInt("is_read", 0) == 1
     }
 
     private fun load(view: View) {
@@ -51,11 +59,11 @@ class NotificationsFragment : Fragment() {
             var unread = 0
             var err = ""
             try {
-                val json = Api.post("notifications.php", mapOf("action" to "list"), savedToken)
+                val json = Api.post("notifications.php", emptyMap(), savedToken)
                 if (json.optBoolean("ok")) {
-                    unread = json.optInt("unread", 0)
                     val arr = json.optJSONArray("items")
                     for (i in 0 until (arr?.length() ?: 0)) items += arr!!.getJSONObject(i)
+                    for (n in items) if (!isRead(n)) unread++
                 } else err = json.optString("error", "Ошибка")
             } catch (e: Exception) {
                 err = "Нет связи с сервером"
@@ -97,10 +105,11 @@ class NotificationsFragment : Fragment() {
 
     private fun card(view: View, n: org.json.JSONObject): View {
         val ctx = requireContext()
+        val read = isRead(n)
         val box = LinearLayout(ctx)
         box.orientation = LinearLayout.VERTICAL
         val bg = GradientDrawable().apply {
-            setColor(if (n.optInt("is_read") == 1) Color.WHITE else Color.parseColor("#F0F9FF"))
+            setColor(if (read) Color.WHITE else Color.parseColor("#EFF6FF"))
             cornerRadius = 40f
         }
         box.background = bg
@@ -127,7 +136,7 @@ class NotificationsFragment : Fragment() {
         title.text = n.optString("title")
         title.textSize = 15f
         title.setTypeface(title.typeface, Typeface.BOLD)
-        title.setTextColor(if (n.optInt("is_read") == 1) Color.parseColor("#1E293B") else Color.parseColor("#2563eb"))
+        title.setTextColor(if (read) Color.parseColor("#1E293B") else Color.parseColor("#2563eb"))
         mid.addView(title)
 
         val date = TextView(ctx)
@@ -137,6 +146,16 @@ class NotificationsFragment : Fragment() {
         head.addView(date)
 
         box.addView(head)
+
+        if (!read) {
+            val label = TextView(ctx)
+            label.text = "● НОВОЕ"
+            label.textSize = 11f
+            label.setTypeface(label.typeface, Typeface.BOLD)
+            label.setTextColor(Color.parseColor("#E53935"))
+            label.setPadding(0, 6, 0, 0)
+            box.addView(label)
+        }
 
         val msg = TextView(ctx)
         msg.text = n.optString("message")
@@ -164,14 +183,14 @@ class NotificationsFragment : Fragment() {
             btns.addView(go)
         }
 
-        if (n.optInt("is_read") == 0) {
-            val read = TextView(ctx)
-            read.text = "✓ Прочитано"
-            read.textSize = 13f
-            read.setTextColor(Color.parseColor("#64748B"))
-            read.setPadding(0, 8, 32, 8)
-            read.setOnClickListener { markRead(view, n) }
-            btns.addView(read)
+        if (!read) {
+            val readBtn = TextView(ctx)
+            readBtn.text = "✓ Прочитано"
+            readBtn.textSize = 13f
+            readBtn.setTextColor(Color.parseColor("#64748B"))
+            readBtn.setPadding(0, 8, 32, 8)
+            readBtn.setOnClickListener { markRead(view, n) }
+            btns.addView(readBtn)
         }
 
         val del = TextView(ctx)
@@ -183,7 +202,10 @@ class NotificationsFragment : Fragment() {
             thread {
                 try {
                     Api.post("notifications.php", mapOf("action" to "delete", "id" to n.optInt("id").toString()), savedToken)
-                    activity?.runOnUiThread { load(view) }
+                    activity?.runOnUiThread {
+                        refreshBadge()
+                        load(view)
+                    }
                 } catch (_: Exception) {}
             }
         }
@@ -196,10 +218,18 @@ class NotificationsFragment : Fragment() {
     private fun markRead(view: View, n: org.json.JSONObject) {
         thread {
             try {
-                Api.post("notifications.php", mapOf("action" to "mark_read", "id" to n.optInt("id").toString()), savedToken)
-                activity?.runOnUiThread { load(view) }
+                Api.post("notifications.php", mapOf("action" to "read", "id" to n.optInt("id").toString()), savedToken)
+                activity?.runOnUiThread {
+                    refreshBadge()
+                    load(view)
+                }
             } catch (_: Exception) {}
         }
+    }
+
+    // Просим MainActivity сразу перерисовать кружки, не дожидаясь перезапуска
+    private fun refreshBadge() {
+        (activity as? MainActivity)?.refreshNotifBadge()
     }
 
     private fun cardBox(): LinearLayout {
