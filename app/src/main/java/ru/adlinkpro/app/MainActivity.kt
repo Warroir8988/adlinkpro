@@ -51,13 +51,7 @@ class MainActivity : AppCompatActivity() {
         refreshNotifBadge()
     }
 
-    override fun onResume() {
-        super.onResume()
-        // Обновляем счётчик при возвращении на экран — например, после просмотра уведомлений
-        refreshNotifBadge()
-    }
-
-    private fun refreshNotifBadge() {
+    fun refreshNotifBadge() {
         val sp = getSharedPreferences("app", MODE_PRIVATE)
         val token = sp.getString("token", null) ?: return
         val nav = findViewById<BottomNavigationView>(R.id.bottom_nav)
