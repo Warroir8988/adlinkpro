@@ -27,7 +27,8 @@ import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class CampaignsFragment : Fragment() {
-    private var cats: List<String> = emptyList()
+    private data class CatItem(val code: String, val name: String)
+    private var catItems: List<CatItem> = emptyList()
     private val selectedCats = mutableSetOf<String>()
     private val catRows = mutableListOf<Pair<String, LinearLayout>>()
     private var savedToken: String? = null
@@ -136,18 +137,21 @@ class CampaignsFragment : Fragment() {
             }
         })
 
-        // Категории с сервера — строки с квадратами выбора
+        // Категории с сервера: код + название (как на вебе, таргетинг по кодам)
         thread {
-            var names: List<String> = emptyList()
+            var items: List<CatItem> = emptyList()
             try {
-                val json = Api.post("sites.php", mapOf("action" to "categories"), savedToken)
+                val json = Api.post("campaigns.php", mapOf("action" to "cats"), savedToken)
                 if (json.optBoolean("ok")) {
-                    val arr = json.optJSONArray("categories")
-                    for (i in 0 until (arr?.length() ?: 0)) names += arr!!.getString(i)
+                    val arr = json.optJSONArray("cats")
+                    for (i in 0 until (arr?.length() ?: 0)) {
+                        val o = arr!!.getJSONObject(i)
+                        items += CatItem(o.optString("code"), o.optString("name"))
+                    }
                 }
             } catch (_: Exception) {}
-            if (names.isEmpty()) names = listOf("Прочее")
-            cats = names
+            if (items.isEmpty()) items = listOf(CatItem("other", "Прочее"))
+            catItems = items
             activity?.runOnUiThread { buildCats(view) }
         }
 
@@ -203,7 +207,7 @@ class CampaignsFragment : Fragment() {
                 !cbAgree.isChecked -> tvStatus.text = "Необходимо согласиться с условиями размещения рекламы"
                 else -> {
                     tvStatus.text = "Создаём…"
-                    createCampaign(view, etTitle, etLink, etText, etColor, cbUseColor, cbBlink, etHtml, etPromo, days, pickedCats, tvStatus, tvBannerFile)
+                    createCampaign(view, etTitle, etLink, etText, etColor, cbUseColor, cbBlink, etHtml, etPromo, days, pickedCats, tvStatus)
                 }
             }
         }
@@ -267,14 +271,14 @@ class CampaignsFragment : Fragment() {
         etTitle: EditText, etLink: EditText, etText: EditText,
         etColor: EditText, cbUseColor: CheckBox, cbBlink: CheckBox,
         etHtml: EditText, etPromo: EditText,
-        days: Int, pickedCats: List<String>, tvStatus: TextView, tvBannerFile: TextView
+        days: Int, pickedCats: List<String>, tvStatus: TextView
     ) {
         val params = mapOf(
             "action" to "create",
             "type" to (if (isBanner) "banner" else "link"),
             "name" to etTitle.text.toString().trim(),
             "days" to days.toString(),
-            "categories" to pickedCats.joinToString(", "),
+            "categories" to pickedCats.joinToString(","),
             "agree_terms" to "1",
             "promo_code" to etPromo.text.toString().trim(),
             "link_text" to etText.text.toString().trim(),
@@ -340,11 +344,12 @@ class CampaignsFragment : Fragment() {
         box.removeAllViews()
         catRows.clear()
         selectedCats.clear()
-        for (n in cats) {
+        for (item in catItems) {
             val row = LinearLayout(requireContext())
             row.orientation = LinearLayout.HORIZONTAL
             row.gravity = Gravity.CENTER_VERTICAL
             row.setPadding(8, 20, 8, 20)
+            row.tag = item.code
 
             val sq = TextView(requireContext())
             sq.text = "☐"
@@ -353,29 +358,27 @@ class CampaignsFragment : Fragment() {
             sq.setPadding(0, 0, 24, 0)
 
             val nameTv = TextView(requireContext())
-            nameTv.text = n
+            nameTv.text = item.name
             nameTv.textSize = 14f
             nameTv.setTextColor(Color.parseColor("#1E293B"))
 
             row.addView(sq)
             row.addView(nameTv)
-            row.tag = false
             row.setOnClickListener {
-                val now = !(row.tag as Boolean)
+                val code = row.tag as String
+                val now = !selectedCats.contains(code)
                 setRowChecked(row, now)
+                if (now) selectedCats.add(code) else selectedCats.remove(code)
             }
             box.addView(row)
-            catRows.add(n to row)
+            catRows.add(item.code to row)
         }
     }
 
     private fun setRowChecked(row: LinearLayout, checked: Boolean) {
-        row.tag = checked
         val sq = row.getChildAt(0) as TextView
         sq.text = if (checked) "☑" else "☐"
         val nameTv = row.getChildAt(1) as TextView
-        val n = nameTv.text.toString()
-        if (checked) selectedCats.add(n) else selectedCats.remove(n)
         nameTv.setTypeface(nameTv.typeface, if (checked) Typeface.BOLD else Typeface.NORMAL)
     }
 
