@@ -1,8 +1,6 @@
 package ru.adlinkpro.app
 
 import android.animation.ValueAnimator
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -13,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,13 +22,14 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
 class CampaignsFragment : Fragment() {
     private var cats: List<String> = emptyList()
+    private val selectedCats = mutableSetOf<String>()
+    private val catRows = mutableListOf<Pair<String, LinearLayout>>()
     private var savedToken: String? = null
     private var pricePerDay = 50.0
     private var minDays = 1
@@ -136,7 +136,7 @@ class CampaignsFragment : Fragment() {
             }
         })
 
-        // Категории с сервера — галочками, как на вебе
+        // Категории с сервера — строки с квадратами выбора
         thread {
             var names: List<String> = emptyList()
             try {
@@ -191,12 +191,7 @@ class CampaignsFragment : Fragment() {
 
         view.findViewById<Button>(R.id.btn_camp_create).setOnClickListener {
             val days = etDays.text.toString().toIntOrNull() ?: 0
-            val pickedCats = mutableListOf<String>()
-            val box = view.findViewById<LinearLayout>(R.id.cats_box)
-            for (i in 0 until box.childCount) {
-                val v = box.getChildAt(i)
-                if (v is CheckBox && v.isChecked) pickedCats.add(v.text.toString())
-            }
+            val pickedCats = selectedCats.toList()
             when {
                 days < minDays || days > maxDays -> tvStatus.text = "Срок размещения должен быть от " + minDays + " до " + maxDays + " дней"
                 pickedCats.isEmpty() -> tvStatus.text = "Выберите хотя бы одну категорию площадок"
@@ -257,9 +252,11 @@ class CampaignsFragment : Fragment() {
                 pickMime = mime
                 val tv = view?.findViewById<TextView>(R.id.tv_banner_file)
                 if (tv != null) {
-                    tv.text = if (bytes != null) {
-                        "Выбран: " + name + ", " + (bytes!!.size / 1024) + " КБ, 468×60 ✓"
-                    } else "Файл не выбран. " + err
+                    if (bytes != null) {
+                        tv.text = "Выбран: " + name + ", " + (bytes!!.size / 1024) + " КБ, 468×60 ✓"
+                    } else {
+                        tv.text = "Файл не выбран. " + err
+                    }
                 }
             }
         }
@@ -306,13 +303,14 @@ class CampaignsFragment : Fragment() {
                         etPromo.setText("")
                         pickBytes = null
                         pickName = ""
+                        selectedCats.clear()
+                        for ((_, row) in catRows) setRowChecked(row, false)
                         view.findViewById<TextView>(R.id.tv_banner_file).text = "Файл не выбран"
-                        tvBannerFile.text = "Файл не выбран"
+                        val disc = json.optString("discount", "0").toDoubleOrNull() ?: 0.0
+                        val bonus = json.optString("bonus", "0").toDoubleOrNull() ?: 0.0
                         var okMsg = "✅ Кампания создана и отправлена на модерацию! К списанию: " + json.optString("total", "") + " ₽"
-                        val disc = json.optString("discount", "")
-                        val bonus = json.optString("bonus", "")
-                        if (disc.toDoubleOrNull() ?: 0.0 > 0) okMsg += " • Скидка " + disc + " ₽"
-                        if (bonus.toDoubleOrNull() ?: 0.0 > 0) okMsg += " • Бонус " + bonus + " ₽"
+                        if (disc > 0) okMsg += " • Скидка " + trimNum(disc) + " ₽"
+                        if (bonus > 0) okMsg += " • Бонус " + trimNum(bonus) + " ₽"
                         tvStatus.text = okMsg
                         thread {
                             try {
@@ -340,13 +338,45 @@ class CampaignsFragment : Fragment() {
     private fun buildCats(view: View) {
         val box = view.findViewById<LinearLayout>(R.id.cats_box)
         box.removeAllViews()
+        catRows.clear()
+        selectedCats.clear()
         for (n in cats) {
-            val cb = CheckBox(requireContext())
-            cb.text = n
-            cb.textSize = 14f
-            cb.setTextColor(Color.parseColor("#1E293B"))
-            box.addView(cb)
+            val row = LinearLayout(requireContext())
+            row.orientation = LinearLayout.HORIZONTAL
+            row.gravity = Gravity.CENTER_VERTICAL
+            row.setPadding(8, 20, 8, 20)
+
+            val sq = TextView(requireContext())
+            sq.text = "☐"
+            sq.textSize = 20f
+            sq.setTextColor(Color.parseColor("#2563eb"))
+            sq.setPadding(0, 0, 24, 0)
+
+            val nameTv = TextView(requireContext())
+            nameTv.text = n
+            nameTv.textSize = 14f
+            nameTv.setTextColor(Color.parseColor("#1E293B"))
+
+            row.addView(sq)
+            row.addView(nameTv)
+            row.tag = false
+            row.setOnClickListener {
+                val now = !(row.tag as Boolean)
+                setRowChecked(row, now)
+            }
+            box.addView(row)
+            catRows.add(n to row)
         }
+    }
+
+    private fun setRowChecked(row: LinearLayout, checked: Boolean) {
+        row.tag = checked
+        val sq = row.getChildAt(0) as TextView
+        sq.text = if (checked) "☑" else "☐"
+        val nameTv = row.getChildAt(1) as TextView
+        val n = nameTv.text.toString()
+        if (checked) selectedCats.add(n) else selectedCats.remove(n)
+        nameTv.setTypeface(nameTv.typeface, if (checked) Typeface.BOLD else Typeface.NORMAL)
     }
 
     private fun updatePreview(tv: TextView, etText: EditText, etColor: EditText, cbUseColor: CheckBox, cbBlink: CheckBox) {
@@ -372,17 +402,13 @@ class CampaignsFragment : Fragment() {
 
     private fun updateFinal(tvFinal: TextView, daysRaw: String) {
         val d = daysRaw.toIntOrNull() ?: 0
-        if (d <= 0) {
+        if (d <= 0 || (promoId == 0 && promoBonus <= 0)) {
             tvFinal.visibility = View.GONE
             return
         }
         val cost = d * pricePerDay
         val discount = cost * promoDiscount / 100.0
         val final = cost - discount + promoBonus
-        if (promoId == 0 && promoBonus <= 0) {
-            tvFinal.visibility = View.GONE
-            return
-        }
         var txt = "Срок: " + d + " дн.\nСтоимость: " + trimNum(cost) + " ₽"
         if (discount > 0) txt += "\nСкидка: -" + trimNum(discount) + " ₽"
         if (promoBonus > 0) txt += "\nБонус: +" + trimNum(promoBonus) + " ₽"
