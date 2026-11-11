@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_light"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tv_wallet_back"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:text="← Назад"
+            android:textColor="@color/primary"
+            android:textSize="16sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="💰 Кошелёк"
+            android:textColor="@color/primary"
+            android:textSize="24sp"
+            android:textStyle="bold"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tv_wallet_balances"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Загрузка балансов…"
+                android:textColor="@color/text_main"
+                android:textSize="15sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Пополнение рекламного баланса"
+                android:textColor="@color/text_main"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Пополненный баланс тратится только на рекламу, выводу не подлежит."
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Способ оплаты"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <Spinner
+                android:id="@+id/sp_dep_gateway"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_spinner"
+                android:padding="10dp"
+                android:popupBackground="@drawable/bg_spinner_dark"/>
+
+            <TextView
+                android:id="@+id/tv_dep_gw_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Сумма (₽)"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/et_dep_amount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_input"
+                android:hint="Например: 250"
+                android:inputType="numberDecimal"
+                android:maxLines="1"
+                android:padding="14dp"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"/>
+
+            <Button
+                android:id="@+id/btn_deposit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/primary"
+                android:text="💳 Пополнить"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/tv_dep_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/red"
+                android:textSize="13sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Вывод средств"
+                android:textColor="@color/text_main"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/tv_wd_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Способ вывода"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <Spinner
+                android:id="@+id/sp_wd_gateway"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_spinner"
+                android:padding="10dp"
+                android:popupBackground="@drawable/bg_spinner_dark"/>
+
+            <TextView
+                android:id="@+id/tv_wd_gw_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:id="@+id/lbl_wd_details"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Реквизиты получателя"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/et_wd_details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_input"
+                android:hint="Реквизиты"
+                android:inputType="text"
+                android:maxLines="1"
+                android:padding="14dp"
+                android:textColor="@color/text_main"
+                android:textColorHint="@color/text_secondary"/>
+
+            <LinearLayout
+                android:id="@+id/lay_fk_method"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Способ оплаты (рубли)"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"/>
+
+                <Spinner
+                    android:id="@+id/sp_fk_method"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_spinner"
+                    android:padding="10dp"
+                    android:popupBackground="@drawable/bg_spinner_dark"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/lay_fk_manual"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Банк получателя (СБП)"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"/>
+
+                <Spinner
+                    android:id="@+id/sp_bank"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_spinner"
+                    android:padding="10dp"
+                    android:popupBackground="@drawable/bg_spinner_dark"/>
+
+                <EditText
+                    android:id="@+id/et_bank_other"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_input"
+                    android:hint="Например: Банк ВСК"
+                    android:inputType="text"
+                    android:maxLines="1"
+                    android:padding="14dp"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_secondary"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Номер телефона, привязанный к счету в банке"
+                    android:textColor="@color/text_main"
+                    android:textSize="14sp"/>
+
+                <EditText
+                    android:id="@+id/et_wd_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_input"
+                    android:hint="+7 912 345-67-89"
+                    android:inputType="phone"
+                    android:maxLines="1"
+                    android:padding="14dp"
+                    android:textColor="@color/text_main"
+                    android:textColorHint="@color/text_secondary"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="Перевод выполнит администратор СБП на указанный номер. Обычно обработка занимает до 24 часов."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="Сумма вывода (₽)"
+                android:textColor="@color/text_main"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/et_wd_amount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_input"
+                android:inputType="numberDecimal"
+                android:maxLines="1"
+                android:padding="14dp"
+                android:textColor="@color/text_main"/>
+
+            <TextView
+                android:id="@+id/tv_wd_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_input"
+                android:padding="12dp"
+                android:textColor="@color/text_main"
+                android:textSize="13sp"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btn_withdraw"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:backgroundTint="@color/primary"
+                android:text="📤 Отправить заявку"
+                android:textColor="@color/white"/>
+
+            <TextView
+                android:id="@+id/tv_wd_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/red"
+                android:textSize="13sp"/>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="История заявок на вывод:"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"/>
+
+        <LinearLayout
+            android:id="@+id/wd_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="История пополнений:"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"/>
+
+        <LinearLayout
+            android:id="@+id/dep_list"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"/>
+    </LinearLayout>
+</ScrollView>
