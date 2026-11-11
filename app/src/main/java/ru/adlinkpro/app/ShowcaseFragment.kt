@@ -181,24 +181,26 @@ class ShowcaseFragment : Fragment() {
         host.textSize = 12f
         host.setTextColor(Color.parseColor("#64748B"))
 
-        val desc = TextView(ctx)
+        box.addView(name)
+        box.addView(host)
+
         val d = s.optString("desc")
         if (d.isNotEmpty()) {
+            val desc = TextView(ctx)
             desc.text = d
             desc.textSize = 12f
             desc.setTextColor(Color.parseColor("#64748B"))
             box.addView(desc)
         }
 
+        val statsLine = "⭐ " + s.optInt("level") + " • Стаж: " + s.optInt("days") + " дн. • 👁 " + s.optInt("imp") +
+            " • 🖱 " + s.optInt("clicks") + " • CTR: " + trimNum(s.optDouble("ctr", 0.0)) + "% • Хосты: " + s.optInt("hosts")
         val stats = TextView(ctx)
-        stats.text = "⭐ " + s.optInt("level") + " • Стаж: " + s.optInt("days") + " дн. • 👁 " + s.optInt("imp")
-            + " • 🖱 " + s.optInt("clicks") + " • CTR: " + s.optDouble("ctr", 0.0) + "% • Хосты: " + s.optInt("hosts")
+        stats.text = statsLine
         stats.textSize = 12f
         stats.setTextColor(Color.parseColor("#334155"))
-
-        box.addView(name)
-        box.addView(host)
         box.addView(stats)
+
         return box
     }
 
