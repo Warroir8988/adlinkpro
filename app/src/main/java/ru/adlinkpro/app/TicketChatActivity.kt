@@ -17,6 +17,22 @@ import org.json.JSONObject
 
 class TicketChatActivity : Activity() {
 
+    companion object {
+        val BG = Color.parseColor("#f1f5f9")
+        val CARD = Color.WHITE
+        val BORDER = Color.parseColor("#e2e8f0")
+        val TEXT = Color.parseColor("#1e293b")
+        val MUTED = Color.parseColor("#64748b")
+        val PRIMARY = Color.parseColor("#3498db")
+        val WARNING = Color.parseColor("#f59e0b")
+        val BLUE = Color.parseColor("#1e40af")
+        val BLUE_BG = Color.parseColor("#dbeafe")
+        val GREEN = Color.parseColor("#059669")
+        val GREEN_BG = Color.parseColor("#d1fae5")
+        val YELLOW_BG = Color.parseColor("#fef3c7")
+        val STAFF_BG = Color.parseColor("#eef2ff")
+    }
+
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
     private fun token(): String = getSharedPreferences("app", MODE_PRIVATE).getString("token", "") ?: ""
     private var ticketId = 0
@@ -27,10 +43,11 @@ class TicketChatActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = CARD
         ticketId = intent.getIntExtra("id", 0)
         if (ticketId == 0) { finish(); return }
 
-        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        val root = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setBackgroundColor(BG) }
         val scroll = ScrollView(this)
         box = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -41,9 +58,20 @@ class TicketChatActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.BOTTOM
             setPadding(dp(12), dp(8), dp(12), dp(12))
-            setBackgroundColor(Color.parseColor("#1E2235"))
+            setBackgroundColor(CARD)
         }
-        input = EditText(this).apply { hint = "Ваше сообщение..." }
+        input = EditText(this).apply {
+            hint = "Ваше сообщение..."
+            textSize = 14f
+            setTextColor(TEXT)
+            setHintTextColor(MUTED)
+            background = GradientDrawable().apply {
+                cornerRadius = dp(6).toFloat()
+                setColor(BG)
+                setStroke(dp(1), BORDER)
+            }
+            setPadding(dp(12), dp(10), dp(12), dp(10))
+        }
         val send = Button(this).apply { text = "➤" }
         inputWrap.addView(input, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
         inputWrap.addView(send)
@@ -52,7 +80,7 @@ class TicketChatActivity : Activity() {
         root.addView(inputWrap)
         setContentView(root)
 
-        status = TextView(this).apply { text = "Загрузка..."; setTextColor(Color.GRAY); setPadding(0, dp(24), 0, 0) }
+        status = TextView(this).apply { text = "Загрузка..."; setTextColor(MUTED); gravity = Gravity.CENTER; setPadding(0, dp(32), 0, 0) }
         box.addView(status)
 
         load()
@@ -93,20 +121,35 @@ class TicketChatActivity : Activity() {
         val t = res.getJSONObject("ticket")
         val closed = t.optString("status") in listOf("closed", "resolved")
 
-        box.addView(TextView(this).apply {
+        val (badge, badgeColor, badgeBg) = when (t.optString("status")) {
+            "open" -> Triple("🟡 Открыто", WARNING, YELLOW_BG)
+            "in_progress" -> Triple("🔵 В работе", BLUE, BLUE_BG)
+            "closed" -> Triple("✅ Закрыто", GREEN, GREEN_BG)
+            "answered" -> Triple("🟢 Есть ответ", GREEN, GREEN_BG)
+            else -> Triple(t.optString("status"), MUTED, BG)
+        }
+
+        val head = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        head.addView(TextView(this).apply {
             text = "#${t.optInt("id")} · ${t.optString("subject")}"
-            textSize = 18f
+            textSize = 17f
             setTypeface(null, Typeface.BOLD)
+            setTextColor(TEXT)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
+        head.addView(TextView(this).apply {
+            text = badge
+            textSize = 11f
+            setTextColor(badgeColor)
+            background = GradientDrawable().apply { cornerRadius = dp(10).toFloat(); setColor(badgeBg) }
+            setPadding(dp(8), dp(3), dp(8), dp(3))
+        })
+        box.addView(head)
         box.addView(TextView(this).apply {
-            text = "Статус: " + when (t.optString("status")) {
-                "open" -> "🟡 Открыто"
-                "answered" -> "🟢 Есть ответ"
-                else -> "⚪ Закрыто"
-            } + " · создано ${t.optString("created")}"
+            text = "Создано ${t.optString("created")}"
             textSize = 12f
-            setTextColor(Color.GRAY)
-            setPadding(0, dp(4), 0, dp(10))
+            setTextColor(MUTED)
+            setPadding(0, dp(4), 0, dp(12))
         })
 
         val msgs = t.optJSONArray("messages") ?: return
@@ -114,12 +157,13 @@ class TicketChatActivity : Activity() {
             val m = msgs.getJSONObject(i)
             val staff = m.optBoolean("staff")
             val bubble = TextView(this).apply {
-                text = "${m.optString("text")}\n${m.optString("date")}"
+                text = m.optString("text") + "\n" + m.optString("date")
                 textSize = 14f
+                setTextColor(TEXT)
                 setPadding(dp(12), dp(10), dp(12), dp(10))
                 background = GradientDrawable().apply {
-                    cornerRadius = dp(10).toFloat()
-                    setColor(if (staff) Color.parseColor("#1E3A5F") else Color.parseColor("#263041"))
+                    cornerRadius = dp(8).toFloat()
+                    setColor(if (staff) STAFF_BG else BLUE_BG)
                 }
                 val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
                 lp.setMargins(0, dp(6), 0, 0)
@@ -132,7 +176,7 @@ class TicketChatActivity : Activity() {
         if (closed) {
             box.addView(TextView(this).apply {
                 text = "Обращение закрыто. Создайте новое, если вопрос остался."
-                setTextColor(Color.GRAY)
+                setTextColor(MUTED)
                 setPadding(0, dp(12), 0, 0)
             })
         } else {
