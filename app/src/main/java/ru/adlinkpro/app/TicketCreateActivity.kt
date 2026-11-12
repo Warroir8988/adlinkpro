@@ -7,13 +7,12 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 class TicketCreateActivity : Activity() {
 
@@ -29,6 +28,22 @@ class TicketCreateActivity : Activity() {
 
     private fun dp(v: Int): Int = (v * resources.displayMetrics.density).toInt()
     private fun token(): String = getSharedPreferences("app", MODE_PRIVATE).getString("token", "") ?: ""
+
+    private val categories = linkedMapOf(
+        "general" to "📌 Общий вопрос",
+        "payment" to "💳 Вопросы по платежам",
+        "withdraw" to "💸 Вопросы по выводам",
+        "campaign" to "📢 Вопросы по кампаниям",
+        "technical" to "🔧 Техническая проблема",
+        "other" to "📎 Другое"
+    )
+    private val priorities = linkedMapOf(
+        "normal" to "🟡 Обычный",
+        "low" to "🟢 Низкий",
+        "high" to "🔴 Высокий"
+    )
+    private var catIndex = 0
+    private var priIndex = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +91,7 @@ class TicketCreateActivity : Activity() {
             setPadding(0, dp(10), 0, dp(4))
         }
 
-        fun editBg() = GradientDrawable().apply {
+        fun fieldBg() = GradientDrawable().apply {
             cornerRadius = dp(6).toFloat()
             setColor(BG)
             setStroke(dp(1), BORDER)
@@ -88,8 +103,8 @@ class TicketCreateActivity : Activity() {
             textSize = 14f
             setTextColor(TEXT)
             setHintTextColor(MUTED)
-            background = editBg()
-            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = fieldBg()
+            setPadding(dp(12), dp(12), dp(12), dp(12))
             filters = arrayOf(android.text.InputFilter.LengthFilter(255))
         }
         card.addView(subject)
@@ -102,29 +117,44 @@ class TicketCreateActivity : Activity() {
         val colR = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
 
         colL.addView(label("Категория"))
-        val categories = linkedMapOf(
-            "general" to "📌 Общий вопрос",
-            "payment" to "💳 Вопросы по платежам",
-            "withdraw" to "💸 Вопросы по выводам",
-            "campaign" to "📢 Вопросы по кампаниям",
-            "technical" to "🔧 Техническая проблема",
-            "other" to "📎 Другое"
-        )
-        val catSpinner = Spinner(this).apply {
-            background = editBg()
-            setPadding(dp(8), dp(8), dp(8), dp(8))
+        val catField = TextView(this).apply {
+            text = categories.values.first()
+            textSize = 14f
+            setTextColor(TEXT)
+            background = fieldBg()
+            setPadding(dp(12), dp(12), dp(12), dp(12))
         }
-        catSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categories.values.toList())
-        colL.addView(catSpinner)
+        catField.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Категория")
+                .setSingleChoiceItems(categories.values.toTypedArray(), catIndex) { d, which ->
+                    catIndex = which
+                    catField.text = categories.values.elementAt(which)
+                    d.dismiss()
+                }
+                .show()
+        }
+        colL.addView(catField)
 
         colR.addView(label("Приоритет"))
-        val priorities = linkedMapOf("normal" to "🟡 Обычный", "low" to "🟢 Низкий", "high" to "🔴 Высокий")
-        val priSpinner = Spinner(this).apply {
-            background = editBg()
-            setPadding(dp(8), dp(8), dp(8), dp(8))
+        val priField = TextView(this).apply {
+            text = priorities.values.first()
+            textSize = 14f
+            setTextColor(TEXT)
+            background = fieldBg()
+            setPadding(dp(12), dp(12), dp(12), dp(12))
         }
-        priSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, priorities.values.toList())
-        colR.addView(priSpinner)
+        priField.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Приоритет")
+                .setSingleChoiceItems(priorities.values.toTypedArray(), priIndex) { d, which ->
+                    priIndex = which
+                    priField.text = priorities.values.elementAt(which)
+                    d.dismiss()
+                }
+                .show()
+        }
+        colR.addView(priField)
 
         colL.layoutParams = colLp
         val colRp = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
@@ -140,8 +170,8 @@ class TicketCreateActivity : Activity() {
             gravity = Gravity.TOP
             setTextColor(TEXT)
             setHintTextColor(MUTED)
-            background = editBg()
-            setPadding(dp(12), dp(10), dp(12), dp(10))
+            background = fieldBg()
+            setPadding(dp(12), dp(12), dp(12), dp(12))
         }
         card.addView(message)
 
@@ -186,8 +216,8 @@ class TicketCreateActivity : Activity() {
 
             send.isEnabled = false
             status.text = ""
-            val catKey = categories.keys.elementAt(catSpinner.selectedItemPosition)
-            val priKey = priorities.keys.elementAt(priSpinner.selectedItemPosition)
+            val catKey = categories.keys.elementAt(catIndex)
+            val priKey = priorities.keys.elementAt(priIndex)
 
             Thread {
                 val res = Api.post("support.php", mapOf(
