@@ -82,10 +82,13 @@ class MoreFragment : Fragment() {
                 .commit()
         }
 
+        view.findViewById<TextView>(R.id.row_support).setOnClickListener {
+            startActivity(Intent(requireContext(), SupportListActivity::class.java))
+        }
+
         val stubs = mapOf(
             R.id.row_stats to "Статистика",
             R.id.row_ref to "Реферальная программа",
-            R.id.row_support to "Поддержка",
             R.id.row_about to "О платформе"
         )
         for ((id, name) in stubs) {
