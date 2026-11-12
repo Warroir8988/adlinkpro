@@ -25,5 +25,9 @@
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysVisible" />
 
+        <activity android:name=".SupportListActivity" />
+        <activity android:name=".TicketCreateActivity" />
+        <activity android:name=".TicketChatActivity" />
+
     </application>
 </manifest>
