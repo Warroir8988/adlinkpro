@@ -2,6 +2,7 @@ package ru.adlinkpro.app
 
 import android.app.Application
 import android.content.Intent
+import android.os.Process
 import java.io.PrintWriter
 import java.io.StringWriter
 
