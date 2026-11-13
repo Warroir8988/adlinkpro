@@ -1,6 +1,7 @@
 package ru.adlinkpro.app
 
 import android.app.Activity
+import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -141,7 +142,7 @@ class CpmOrderActivity : Activity() {
 
         send = TextView(this).apply {
             text = "🛒 Оформить заказ"
-            textSize = 14f; setTextColor(android.graphics.Color.WHITE); gravity = Gravity.CENTER
+            textSize = 14f; setTextColor(Color.WHITE); gravity = Gravity.CENTER
             setTypeface(null, Typeface.BOLD)
             background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Ui.PRIMARY) }
             setPadding(dp(16), dp(12), dp(16), dp(12))
