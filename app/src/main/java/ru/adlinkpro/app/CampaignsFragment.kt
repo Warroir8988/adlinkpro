@@ -302,7 +302,7 @@ class CampaignsFragment : Fragment() {
         thread {
             try {
                 val json = if (isBanner && pickBytes != null) {
-                    ApiUpload.upload("campaigns.php", params, pickBytes!!, pickName, pickMime, savedToken)
+                    ApiUpload.post(requireContext(), "campaigns.php", params, "banner_file", pickName, pickMime, pickBytes)
                 } else {
                     Api.post("campaigns.php", params, savedToken)
                 }
