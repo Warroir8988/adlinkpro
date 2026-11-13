@@ -18,7 +18,7 @@ object ApiUpload {
         fileMime: String? = null,
         fileBytes: ByteArray? = null
     ): JSONObject {
-        val token = ctx.getSharedPreferences("app", MODE_PRIVATE).getString("token", "") ?: ""
+        val token = ctx.getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", "") ?: ""
         return try {
             val boundary = "----AlpBoundary" + System.currentTimeMillis()
             val conn = URL(BASE + script).openConnection() as HttpURLConnection
