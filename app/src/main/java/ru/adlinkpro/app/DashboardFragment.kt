@@ -1,5 +1,6 @@
 package ru.adlinkpro.app
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -46,7 +47,7 @@ class DashboardFragment : Fragment() {
         return g
     }
 
-    private fun cardView(ctx: android.content.Context, topMarginDp: Int = 10): LinearLayout {
+    private fun cardView(ctx: Context, topMarginDp: Int = 10): LinearLayout {
         val c = LinearLayout(ctx)
         c.orientation = LinearLayout.VERTICAL
         c.background = roundBg("#ffffff", 12, "#e2e8f0", 1)
