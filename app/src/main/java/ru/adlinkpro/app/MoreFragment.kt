@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
@@ -64,18 +63,20 @@ class MoreFragment : Fragment() {
                 .commit()
         }
 
-        // Пока заглушки — экраны соберём после дампа страниц
         view.findViewById<TextView>(R.id.row_cpm_order).setOnClickListener {
-            Toast.makeText(requireContext(), "Тираж — экран в разработке", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), CpmOrderActivity::class.java))
         }
+
         view.findViewById<TextView>(R.id.row_site_banners).setOnClickListener {
-            Toast.makeText(requireContext(), "Баннеры на сайте — экран в разработке", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), SiteBannersActivity::class.java))
         }
+
         view.findViewById<TextView>(R.id.row_text_ads).setOnClickListener {
-            Toast.makeText(requireContext(), "Текстовая реклама — экран в разработке", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), TextAdsActivity::class.java))
         }
+
         view.findViewById<TextView>(R.id.row_my_banners).setOnClickListener {
-            Toast.makeText(requireContext(), "Мои баннеры — экран в разработке", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), MyBannersActivity::class.java))
         }
 
         view.findViewById<TextView>(R.id.row_deposit).setOnClickListener {
