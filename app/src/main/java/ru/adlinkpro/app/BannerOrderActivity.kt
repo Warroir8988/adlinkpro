@@ -62,7 +62,6 @@ class BannerOrderActivity : Activity() {
             setPadding(0, 0, 0, dp(14))
         })
 
-        // Голубая карточка «Как работает» — как на сайте
         val how = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(Color.parseColor("#f0f9ff"), Color.parseColor("#e0f2fe"))).apply {
@@ -157,16 +156,17 @@ class BannerOrderActivity : Activity() {
         card.addView(fileNote)
 
         card.addView(label("Предпросмотр (468×60):"))
-        val previewBox = LinearLayout(this).apply {
-            background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.parseColor("#f8fafc")); setStroke(dp(2), Ui.BORDER) }
+        val previewBoxLocal = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
+            background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.parseColor("#f8fafc")); setStroke(dp(2), Ui.BORDER) }
             setPadding(dp(6), dp(6), dp(6), dp(6))
         }
         preview = ImageView(this).apply { adjustViewBounds = true; visibility = android.view.View.GONE }
         previewEmpty = TextView(this).apply { text = "Предпросмотр появится здесь"; textSize = 12f; setTextColor(Ui.MUTED) }
-        previewBox.addView(preview)
-        previewBox.addView(previewEmpty)
-        card.addView(previewBox)
+        previewBoxLocal.addView(preview)
+        previewBoxLocal.addView(previewEmpty)
+        card.addView(previewBoxLocal)
 
         card.addView(label("Количество дней показа"))
         days = EditText(this).apply {
