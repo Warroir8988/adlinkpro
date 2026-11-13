@@ -18,7 +18,7 @@ object ApiUpload {
         fileMime: String? = null,
         fileBytes: ByteArray? = null
     ): JSONObject {
-        val token = ctx.getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", "") ?: ""
+        val token = ctx.getSharedPreferences("app", MODE_PRIVATE).getString("token", "") ?: ""
         return try {
             val boundary = "----AlpBoundary" + System.currentTimeMillis()
             val conn = URL(BASE + script).openConnection() as HttpURLConnection
@@ -31,6 +31,8 @@ object ApiUpload {
             val out = DataOutputStream(conn.outputStream)
             fun write(s: String) = out.write(s.toByteArray(Charsets.UTF_8))
 
+            // Каждая часть multipart обязана начинаться с --boundary, включая первую — без этого сервер не видит поля
+            write("--$boundary\r\n")
             write("Content-Disposition: form-data; name=\"token\"\r\n\r\n$token\r\n")
             for ((k, v) in fields) {
                 write("--$boundary\r\n")
