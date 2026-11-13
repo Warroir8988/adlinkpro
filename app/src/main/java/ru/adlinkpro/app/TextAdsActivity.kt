@@ -93,8 +93,8 @@ class TextAdsActivity : Activity() {
             val a = ads.getJSONObject(i)
             val card = Ui.card(this)
 
-            val titleRow = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, 0, 0, dp(6)) }
-            titleRow.addView(TextView(this).apply {
+            val titleCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(0, 0, 0, dp(6)) }
+            titleCol.addView(TextView(this).apply {
                 text = a.optString("text")
                 textSize = 15f
                 setTypeface(null, Typeface.BOLD)
@@ -104,17 +104,15 @@ class TextAdsActivity : Activity() {
             })
             val badges = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(6), 0, 0) }
             fun addBadge(t: String, col: Int) {
-                badges.addView(TextView(this).apply {
+                val b = TextView(this).apply {
                     text = t; textSize = 11f; setTextColor(col)
                     background = GradientDrawable().apply {
                         cornerRadius = dp(10).toFloat()
                         setColor(if (col == Ui.SUCCESS) Color.parseColor("#d1fae5") else Color.parseColor("#dbeafe"))
                     }
                     setPadding(dp(8), dp(3), dp(8), dp(3))
-                    val lp = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
-                    lp.setMargins(0, 0, dp(6), 0)
-                    layoutParams = lp
-                })
+                }
+                badges.addView(b, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, dp(6), 0) })
             }
             addBadge(when (a.optString("status")) {
                 "active" -> "✅ Активно"
@@ -129,19 +127,22 @@ class TextAdsActivity : Activity() {
             })
             if (a.optString("color").isNotBlank()) addBadge("🎨 Цвет", Ui.PRIMARY)
             if (a.optBoolean("blink")) addBadge("✨ Моргает", Ui.PRIMARY)
-            titleRow.addView(badges)
-            card.addView(titleRow)
+            titleCol.addView(badges)
+            card.addView(titleCol)
 
             card.addView(info("🔗 ${a.optString("link_url")}"))
             card.addView(info("📅 Размещено: ${a.optString("created")}"))
             card.addView(info("💰 Оплачено: ${a.optString("total_price")} (разовая оплата)"))
             card.addView(info("👁 Показов: ${a.optInt("impressions")} · 👆 Кликов: ${a.optInt("clicks")}"))
 
-            val btnRow = LinearLayout(this).apply { setPadding(0, dp(10), 0, 0) }
-            btnRow.addView(Ui.btnGhost(this, "✏️ Редактировать") {
+            val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(10), 0, 0) }
+
+            val edit = Ui.btnGhost(this, "✏️ Редактировать") {
                 Toast.makeText(this, "Редактирование пока на сайте — добавим следующим обновлением", Toast.LENGTH_SHORT).show()
-            })
-            btnRow.addView(Ui.btnGhost(this, "🗑️ Удалить") {
+            }
+            btnRow.addView(edit)
+
+            val del = Ui.btnGhost(this, "🗑️ Удалить") {
                 AlertDialog.Builder(this)
                     .setTitle("Удалить объявление?")
                     .setMessage("Остаток средств вернётся на рекламный счёт.")
@@ -156,12 +157,10 @@ class TextAdsActivity : Activity() {
                     }
                     .setNegativeButton("Отмена", null)
                     .show()
-            }.apply {
-                val lp = layoutParams as LinearLayout.LayoutParams
-                lp.setMargins(dp(8), 0, 0, 0)
-                layoutParams = lp
-                setTextColor(Ui.DANGER)
-            })
+            }
+            del.setTextColor(Ui.DANGER)
+            btnRow.addView(del, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(dp(8), 0, 0, 0) })
+
             card.addView(btnRow)
             box.addView(card)
         }
