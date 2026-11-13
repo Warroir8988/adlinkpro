@@ -37,6 +37,7 @@
         <activity android:name=".MyBannersActivity" />
         <activity android:name=".TextAdsActivity" />
         <activity android:name=".TextAdCreateActivity" />
+        <activity android:name=".BannerOrderActivity" />
 
     </application>
 </manifest>
