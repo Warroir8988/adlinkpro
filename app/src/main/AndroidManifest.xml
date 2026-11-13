@@ -32,6 +32,11 @@
         <activity android:name=".RatingActivity" />
         <activity android:name=".StatsActivity" />
         <activity android:name=".ReviewActivity" />
+        <activity android:name=".CpmOrderActivity" />
+        <activity android:name=".SiteBannersActivity" />
+        <activity android:name=".MyBannersActivity" />
+        <activity android:name=".TextAdsActivity" />
+        <activity android:name=".TextAdCreateActivity" />
 
     </application>
 </manifest>
