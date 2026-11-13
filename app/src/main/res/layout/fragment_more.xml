@@ -68,7 +68,7 @@
             <TextView android:id="@+id/row_stats"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="📊 Статистика"            android:textColor="@color/text_main" android:textSize="16sp" android:clickable="true" android:focusable="true"/>
             <TextView android:id="@+id/row_ref"       android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🎁 Реферальная программа" android:textColor="@color/text_main" android:textSize="16sp" android:clickable="true" android:focusable="true"/>
             <TextView android:id="@+id/row_support"   android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="🎧 Поддержка"             android:textColor="@color/text_main" android:textSize="16sp" android:clickable="true" android:focusable="true"/>
-            <TextView android:id="@+id/row_about"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="⭐ О платформе"           android:textColor="@color/text_main" android:textSize="16sp" android:clickable="true" android:focusable="true"/>
+            <TextView android:id="@+id/row_about"     android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="16dp" android:text="⭐ Отзывы"                android:textColor="@color/text_main" android:textSize="16sp" android:clickable="true" android:focusable="true"/>
         </LinearLayout>
 
         <Button
