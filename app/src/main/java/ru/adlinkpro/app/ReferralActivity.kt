@@ -109,7 +109,7 @@ class ReferralActivity : Activity() {
         val st = res.optJSONObject("stats") ?: JSONObject()
         val row1 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(14), 0, 0) }
         val row2 = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(6), 0, 0) }
-        fun tile(row: LinearLayout, value: String, label: String, color: Int) {
+        fun tile(row: LinearLayout, value: String, label: String, color: Int = Ui.TEXT) {
             row.addView(Ui.statTile(this, value, label, color),
                 LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply { setMargins(0, 0, dp(6), 0) })
         }
