@@ -2,6 +2,7 @@ package ru.adlinkpro.app
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
@@ -91,7 +92,7 @@ class MyBannersActivity : Activity() {
             layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         head.addView(Ui.btnPrimary(this, "+ Заказать баннер") {
-            Toast.makeText(this, "Заказ баннера — в следующем обновлении", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, BannerOrderActivity::class.java))
         })
         box.addView(head)
 
@@ -140,7 +141,7 @@ class MyBannersActivity : Activity() {
             if (b.optString("status") == "active") card.addView(info("⏳ Осталось дней: ${b.optInt("days_left")}"))
             card.addView(info("👁 Показов: ${b.optInt("impressions")} · 👆 Кликов: ${b.optInt("clicks")}"))
 
-            val btnRow = LinearLayout(this).apply { setPadding(0, dp(10), 0, 0) }
+            val btnRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; setPadding(0, dp(10), 0, 0) }
             btnRow.addView(Ui.btnGhost(this, "🗑️ Удалить") {
                 AlertDialog.Builder(this)
                     .setTitle("Удалить баннер?")
