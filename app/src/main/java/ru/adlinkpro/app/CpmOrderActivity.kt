@@ -1,12 +1,17 @@
 package ru.adlinkpro.app
 
 import android.app.Activity
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.view.Gravity
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
@@ -22,10 +27,20 @@ class CpmOrderActivity : Activity() {
     private var imp = 1000
     private var impLabel = "1 000 показов — 29,40 руб."
     private var impLabels: List<Pair<Int, String>> = emptyList()
+
+    private var fileBytes: ByteArray? = null
+    private var fileName: String? = null
+    private var fileMime: String? = null
+
     private lateinit var impField: TextView
     private lateinit var payNote: TextView
     private lateinit var status: TextView
     private lateinit var send: TextView
+    private lateinit var fileBtn: TextView
+    private lateinit var fileNote: TextView
+    private lateinit var preview: ImageView
+    private lateinit var previewEmpty: TextView
+    private lateinit var bannerUrl: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -110,15 +125,40 @@ class CpmOrderActivity : Activity() {
         }
         card.addView(impField)
 
+        card.addView(label("Файл баннера — PNG/JPEG/GIF/WebP, ровно 468×60, до 2 МБ"))
+        fileBtn = Ui.btnGhost(this, "📂 Выбрать файл с телефона") {
+            val intent = Intent(Intent.ACTION_GET_CONTENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+            }
+            startActivityForResult(Intent.createChooser(intent, "Выбрать баннер"), 101)
+        }
+        card.addView(fileBtn, LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { setMargins(0, 0, 0, dp(6)) })
+        fileNote = TextView(this).apply { textSize = 12f; setTextColor(Ui.SUCCESS); setPadding(0, 0, 0, dp(6)) }
+        card.addView(fileNote)
+
+        val previewBox = LinearLayout(this).apply {
+            background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.WHITE); setStroke(dp(2), Ui.BORDER) }
+            gravity = Gravity.CENTER
+            setPadding(dp(6), dp(6), dp(6), dp(6))
+            visibility = android.view.View.GONE
+        }
+        preview = ImageView(this).apply { adjustViewBounds = true }
+        previewEmpty = TextView(this).apply { text = "Предпросмотр появится здесь"; textSize = 12f; setTextColor(Ui.MUTED) }
+        previewBox.addView(preview)
+        previewBox.addView(previewEmpty)
+        card.addView(previewBox)
+        card.tag = previewBox
+
         card.addView(label("Ссылка, куда ведёт баннер (обязательно, если загружаете файл)"))
-        val url = EditText(this).apply {
+        bannerUrl = EditText(this).apply {
             hint = "https://yoursite.com"
             textSize = 14f; setTextColor(Ui.TEXT); setHintTextColor(Ui.MUTED)
             background = fieldBg(); setPadding(dp(12), dp(10), dp(12), dp(10))
         }
-        card.addView(url)
+        card.addView(bannerUrl)
 
-        card.addView(label("Рекламный код (HTML баннера/ссылки)"))
+        card.addView(label("Рекламный код (HTML баннера/ссылки) — если без файла"))
         val html = EditText(this).apply {
             hint = "Вставьте HTML баннера или ссылки"
             textSize = 14f; minLines = 6; gravity = Gravity.TOP
@@ -126,11 +166,6 @@ class CpmOrderActivity : Activity() {
             background = fieldBg(); setPadding(dp(12), dp(10), dp(12), dp(10))
         }
         card.addView(html)
-
-        card.addView(TextView(this).apply {
-            text = "⚠️ Загрузка файла баннера с телефона пока недоступна — вставьте HTML-код (как на сайте, вариант без файла). Файл добавим в следующем обновлении."
-            textSize = 12f; setTextColor(Ui.WARNING); setPadding(0, dp(8), 0, 0)
-        })
 
         payNote = TextView(this).apply {
             textSize = 13f; setTextColor(Ui.MUTED); setPadding(0, dp(10), 0, 0)
@@ -152,7 +187,6 @@ class CpmOrderActivity : Activity() {
         }
         card.addView(send)
 
-        // Балансы + пакеты
         Thread {
             val info = Api.post("ads.php", mapOf("action" to "info"), token())
             runOnUiThread {
@@ -174,19 +208,30 @@ class CpmOrderActivity : Activity() {
         send.setOnClickListener {
             val nm = name.text.toString().trim()
             val code = html.text.toString().trim()
+            val hasFile = fileBytes != null
+
             if (nm.length < 3) { status.text = "Название слишком короткое"; return@setOnClickListener }
-            if (code.isEmpty()) { status.text = "Вставьте HTML баннера или ссылки"; return@setOnClickListener }
+            if (!hasFile && code.isEmpty()) { status.text = "Выберите файл баннера или вставьте HTML-код"; return@setOnClickListener }
+            if (hasFile && !bannerUrl.text.toString().trim().startsWith("http")) {
+                status.text = "Укажите ссылку, куда ведёт баннер"; return@setOnClickListener
+            }
 
             send.isEnabled = false
             status.text = ""
             Thread {
-                val res = Api.post("ads.php", mapOf(
+                val res: JSONObject
+                val fields = mapOf(
                     "action" to "cpm_order",
                     "name" to nm,
                     "impressions" to imp.toString(),
-                    "banner_url" to url.text.toString().trim(),
+                    "banner_url" to bannerUrl.text.toString().trim(),
                     "html_code" to code
-                ), token())
+                )
+                res = if (hasFile) {
+                    ApiUpload.post(this, "ads.php", fields, "banner_file", fileName, fileMime, fileBytes)
+                } else {
+                    Api.post("ads.php", fields, token())
+                }
                 runOnUiThread {
                     send.isEnabled = true
                     if (needLogin(this, res)) return@runOnUiThread
@@ -199,5 +244,44 @@ class CpmOrderActivity : Activity() {
                 }
             }.start()
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 101 && resultCode == RESULT_OK) {
+            val uri = data?.data ?: return
+            try {
+                val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
+                if (bytes.size > 2 * 1024 * 1024) {
+                    status.text = "Файл больше 2 МБ"
+                    return
+                }
+                val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                if (bmp == null) {
+                    status.text = "Это не изображение"
+                    return
+                }
+                fileBytes = bytes
+                fileMime = contentResolver.getType(uri) ?: "image/png"
+                fileName = queryName(uri) ?: "banner.${fileMime?.substringAfter('/') ?: "png"}"
+                fileNote.text = "✅ Выбран файл: $fileName (${bytes.size / 1024} КБ)"
+                preview.setImageBitmap(bmp)
+                preview.visibility = android.view.View.VISIBLE
+                previewEmpty.visibility = android.view.View.GONE
+                (card.tag as? android.view.View)?.visibility = android.view.View.VISIBLE
+                status.text = ""
+            } catch (e: Exception) {
+                status.text = "Не удалось прочитать файл"
+            }
+        }
+    }
+
+    private fun queryName(uri: Uri): String? {
+        return try {
+            contentResolver.query(uri, null, null, null, null)?.use { c ->
+                val idx = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0 && c.moveToFirst()) c.getString(idx) else null
+            }
+        } catch (_: Exception) { null }
     }
 }
