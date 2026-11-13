@@ -8,7 +8,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
@@ -95,7 +94,7 @@ class MoreFragment : Fragment() {
         }
 
         view.findViewById<TextView>(R.id.row_about).setOnClickListener {
-            Toast.makeText(requireContext(), "Отзыв о платформе — добавим следующим обновлением", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), ReviewActivity::class.java))
         }
 
         thread {
@@ -108,4 +107,3 @@ class MoreFragment : Fragment() {
         }
     }
 }
-
