@@ -86,15 +86,16 @@ class MoreFragment : Fragment() {
             startActivity(Intent(requireContext(), SupportListActivity::class.java))
         }
 
-        val stubs = mapOf(
-            R.id.row_stats to "Статистика",
-            R.id.row_ref to "Реферальная программа",
-            R.id.row_about to "О платформе"
-        )
-        for ((id, name) in stubs) {
-            view.findViewById<TextView>(id).setOnClickListener {
-                Toast.makeText(requireContext(), "$name — раздел появится в следующем обновлении", Toast.LENGTH_SHORT).show()
-            }
+        view.findViewById<TextView>(R.id.row_ref).setOnClickListener {
+            startActivity(Intent(requireContext(), ReferralActivity::class.java))
+        }
+
+        view.findViewById<TextView>(R.id.row_stats).setOnClickListener {
+            startActivity(Intent(requireContext(), StatsActivity::class.java))
+        }
+
+        view.findViewById<TextView>(R.id.row_about).setOnClickListener {
+            Toast.makeText(requireContext(), "Отзыв о платформе — добавим следующим обновлением", Toast.LENGTH_SHORT).show()
         }
 
         thread {
@@ -107,3 +108,4 @@ class MoreFragment : Fragment() {
         }
     }
 }
+
