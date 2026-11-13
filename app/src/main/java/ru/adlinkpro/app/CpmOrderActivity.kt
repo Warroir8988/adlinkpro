@@ -40,6 +40,7 @@ class CpmOrderActivity : Activity() {
     private lateinit var fileNote: TextView
     private lateinit var preview: ImageView
     private lateinit var previewEmpty: TextView
+    private lateinit var previewBox: LinearLayout
     private lateinit var bannerUrl: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -137,9 +138,10 @@ class CpmOrderActivity : Activity() {
         fileNote = TextView(this).apply { textSize = 12f; setTextColor(Ui.SUCCESS); setPadding(0, 0, 0, dp(6)) }
         card.addView(fileNote)
 
-        val previewBox = LinearLayout(this).apply {
-            background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.WHITE); setStroke(dp(2), Ui.BORDER) }
+        previewBox = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
+            background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.WHITE); setStroke(dp(2), Ui.BORDER) }
             setPadding(dp(6), dp(6), dp(6), dp(6))
             visibility = android.view.View.GONE
         }
@@ -148,7 +150,6 @@ class CpmOrderActivity : Activity() {
         previewBox.addView(preview)
         previewBox.addView(previewEmpty)
         card.addView(previewBox)
-        card.tag = previewBox
 
         card.addView(label("Ссылка, куда ведёт баннер (обязательно, если загружаете файл)"))
         bannerUrl = EditText(this).apply {
@@ -266,9 +267,7 @@ class CpmOrderActivity : Activity() {
                 fileName = queryName(uri) ?: "banner.${fileMime?.substringAfter('/') ?: "png"}"
                 fileNote.text = "✅ Выбран файл: $fileName (${bytes.size / 1024} КБ)"
                 preview.setImageBitmap(bmp)
-                preview.visibility = android.view.View.VISIBLE
-                previewEmpty.visibility = android.view.View.GONE
-                (card.tag as? android.view.View)?.visibility = android.view.View.VISIBLE
+                previewBox.visibility = android.view.View.VISIBLE
                 status.text = ""
             } catch (e: Exception) {
                 status.text = "Не удалось прочитать файл"
