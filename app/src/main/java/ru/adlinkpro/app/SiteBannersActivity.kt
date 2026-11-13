@@ -1,6 +1,7 @@
 package ru.adlinkpro.app
 
 import android.app.Activity
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.Typeface
@@ -11,7 +12,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
-import android.widget.Toast
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URL
@@ -21,7 +21,6 @@ class SiteBannersActivity : Activity() {
     private fun dp(v: Int) = Ui.dp(this, v)
     private fun token(): String = getSharedPreferences("app", MODE_PRIVATE).getString("token", "") ?: ""
     private lateinit var box: LinearLayout
-    private lateinit var countView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,7 +67,6 @@ class SiteBannersActivity : Activity() {
             setPadding(0, 0, 0, dp(14))
         })
 
-        // Промо-блок — фиолетовый градиент, как на сайте
         val promo = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
@@ -99,19 +97,18 @@ class SiteBannersActivity : Activity() {
             setTextColor(Color.parseColor("#4f46e5"))
             background = GradientDrawable().apply { cornerRadius = dp(6).toFloat(); setColor(Color.WHITE) }
             setPadding(dp(12), dp(10), dp(12), dp(10))
-            setOnClickListener { Toast.makeText(this@SiteBannersActivity, "Заказ баннера — в следующем обновлении", Toast.LENGTH_SHORT).show() }
+            setOnClickListener { startActivity(Intent(this@SiteBannersActivity, BannerOrderActivity::class.java)) }
         }
         promo.addView(orderBtn)
         box.addView(promo)
 
         val banners: JSONArray = res.optJSONArray("banners") ?: JSONArray()
-        countView = TextView(this).apply {
+        box.addView(TextView(this).apply {
             text = "Активных баннеров: ${banners.length()}"
             textSize = 13f
             setTextColor(Ui.MUTED)
             setPadding(0, 0, 0, dp(10))
-        }
-        box.addView(countView)
+        })
 
         for (i in 0 until banners.length()) {
             val b = banners.getJSONObject(i)
