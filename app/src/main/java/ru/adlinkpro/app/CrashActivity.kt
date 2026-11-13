@@ -19,7 +19,7 @@ class CrashActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.statusBarColor = Color.parseColor("#7f1d1d")
 
-        val text = intent.getStringExtra("crash_text") ?: run {
+        val crashText = intent.getStringExtra("crash_text") ?: run {
             getSharedPreferences("crash", MODE_PRIVATE).getString("last", "") ?: ""
         }
         // Прочитали — можно стереть
@@ -54,7 +54,7 @@ class CrashActivity : Activity() {
             textSize = 11f
             setTextColor(Color.WHITE)
             typeface = Typeface.MONOSPACE
-            text = if (text.isBlank()) "Текст ошибки не сохранился." else text
+            setText(if (crashText.isBlank()) "Текст ошибки не сохранился." else crashText)
         }
         scroll.addView(tv)
         root.addView(scroll)
