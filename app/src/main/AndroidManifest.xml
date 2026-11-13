@@ -28,6 +28,9 @@
         <activity android:name=".SupportListActivity" />
         <activity android:name=".TicketCreateActivity" />
         <activity android:name=".TicketChatActivity" />
+        <activity android:name=".ReferralActivity" />
+        <activity android:name=".RatingActivity" />
+        <activity android:name=".StatsActivity" />
 
     </application>
 </manifest>
