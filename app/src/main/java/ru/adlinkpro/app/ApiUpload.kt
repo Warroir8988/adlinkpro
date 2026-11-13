@@ -1,56 +1,61 @@
 package ru.adlinkpro.app
 
+import android.content.Context
+import org.json.JSONObject
 import java.io.DataOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
 object ApiUpload {
-    const val BASE = "https://adlinkpro.ru/mobapi/"
+    private const val BASE = "https://adlinkpro.ru/mobapi/"
 
-    fun upload(
-        file: String,
-        params: Map<String, String>,
-        bytes: ByteArray,
-        fileName: String,
-        mime: String,
-        token: String?
-    ): org.json.JSONObject {
-        val allParams = LinkedHashMap<String, String>(params)
-        if (!token.isNullOrEmpty() && !allParams.containsKey("token")) {
-            allParams["token"] = token
-        }
-
-        val boundary = "----AdLinkPro" + System.currentTimeMillis()
-        val conn = (URL(BASE + file).openConnection()) as HttpURLConnection
-        conn.requestMethod = "POST"
-        conn.doOutput = true
-        conn.connectTimeout = 15000
-        conn.readTimeout = 60000
-        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary)
-        if (!token.isNullOrEmpty()) conn.setRequestProperty("Authorization", "Bearer " + token)
-
-        val out = DataOutputStream(conn.outputStream)
-        for ((k, v) in allParams) {
-            out.writeBytes("--" + boundary + "\r\n")
-            out.writeBytes("Content-Disposition: form-data; name=\"" + k + "\"\r\n\r\n")
-            out.writeBytes(v + "\r\n")
-        }
-        out.writeBytes("--" + boundary + "\r\n")
-        out.writeBytes("Content-Disposition: form-data; name=\"banner_file\"; filename=\"" + fileName + "\"\r\n")
-        out.writeBytes("Content-Type: " + mime + "\r\n\r\n")
-        out.write(bytes)
-        out.writeBytes("\r\n")
-        out.writeBytes("--" + boundary + "--\r\n")
-        out.flush()
-        out.close()
-
-        val code = conn.responseCode
-        val stream = if (code in 200..299) conn.inputStream else conn.errorStream
-        val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
+    fun post(
+        ctx: Context,
+        script: String,
+        fields: Map<String, String>,
+        fileField: String? = null,
+        fileName: String? = null,
+        fileMime: String? = null,
+        fileBytes: ByteArray? = null
+    ): JSONObject {
+        val token = ctx.getSharedPreferences("app", Context.MODE_PRIVATE).getString("token", "") ?: ""
         return try {
-            org.json.JSONObject(if (text.isEmpty()) "{\"ok\":false,\"error\":\"HTTP " + code + "\"}" else text)
+            val boundary = "----AlpBoundary" + System.currentTimeMillis()
+            val conn = URL(BASE + script).openConnection() as HttpURLConnection
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.connectTimeout = 20000
+            conn.readTimeout = 60000
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=$boundary")
+
+            val out = DataOutputStream(conn.outputStream)
+            fun write(s: String) = out.write(s.toByteArray(Charsets.UTF_8))
+
+            write("Content-Disposition: form-data; name=\"token\"\r\n\r\n$token\r\n")
+            for ((k, v) in fields) {
+                write("--$boundary\r\n")
+                write("Content-Disposition: form-data; name=\"$k\"\r\n\r\n")
+                write("$v\r\n")
+            }
+            if (fileField != null && fileBytes != null) {
+                val safeName = (fileName ?: "banner.png").replace("\"", "").replace("\r", "").replace("\n", "")
+                write("--$boundary\r\n")
+                write("Content-Disposition: form-data; name=\"$fileField\"; filename=\"$safeName\"\r\n")
+                write("Content-Type: ${fileMime ?: "application/octet-stream"}\r\n\r\n")
+                out.write(fileBytes)
+                write("\r\n")
+            }
+            write("--$boundary--\r\n")
+            out.flush()
+            out.close()
+
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream?.bufferedReader()?.use { it.readText() } ?: ""
+            if (text.trimStart().startsWith("{")) JSONObject(text)
+            else JSONObject().put("ok", false).put("error", "Сервер вернул ошибку (HTTP $code)")
         } catch (e: Exception) {
-            org.json.JSONObject("{\"ok\":false,\"error\":\"Ответ сервера не разобран\"}")
+            JSONObject().put("ok", false).put("error", "Сеть недоступна: ${e.message}")
         }
     }
 }
