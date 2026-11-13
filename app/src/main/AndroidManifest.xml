@@ -31,6 +31,7 @@
         <activity android:name=".ReferralActivity" />
         <activity android:name=".RatingActivity" />
         <activity android:name=".StatsActivity" />
+        <activity android:name=".ReviewActivity" />
 
     </application>
 </manifest>
