@@ -47,6 +47,7 @@ class LoginActivity : AppCompatActivity() {
         val etPassword = findViewById<EditText>(R.id.et_password)
         val btnLogin = findViewById<Button>(R.id.btn_login)
         val btnRegister = findViewById<Button>(R.id.btn_register)
+        val tvForgot = findViewById<TextView>(R.id.tv_forgot)
         val tvStatus = findViewById<TextView>(R.id.tv_status)
 
         btnLogin.setOnClickListener {
@@ -86,7 +87,11 @@ class LoginActivity : AppCompatActivity() {
         }
 
         btnRegister.setOnClickListener {
-            tvStatus.text = "Регистрация скоро заработает"
+            startActivity(Intent(this, RegisterActivity::class.java))
+        }
+
+        tvForgot.setOnClickListener {
+            startActivity(Intent(this, ForgotPasswordActivity::class.java))
         }
     }
 
