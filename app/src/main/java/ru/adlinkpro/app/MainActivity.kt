@@ -62,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         /* fw-push: тап по уведомлению открывает раздел уведомлений */
         if (savedInstanceState == null && intent?.getBooleanExtra("open_notifications", false) == true) {
-            parentFragmentManager.beginTransaction()
+            supportFragmentManager.beginTransaction()
                 .replace(R.id.container, NotificationsFragment())
                 .addToBackStack(null)
                 .commit()
