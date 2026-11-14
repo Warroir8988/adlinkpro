@@ -13,7 +13,12 @@ jobs:
         with:
           gradle-version: '8.5'
       - run: gradle assembleRelease
+      - name: Show built files
+        run: |
+          echo "--- APK files ---"
+          find app/build/outputs -name "*.apk" || true
       - uses: actions/upload-artifact@v4
         with:
           name: adlinkpro-release
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
