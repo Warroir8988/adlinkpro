@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             GradientDrawable.Orientation.TL_BR,
             intArrayOf(Color.parseColor("#38bdf8"), Color.parseColor("#0284c7"))
         )
-        ring.cornerRadius = dp(25).toFloat()
+        ring.cornerRadius = dp(23).toFloat()
         ring.setStroke(dp(2), Color.parseColor("#7dd3fc"))
         walletBtn.background = ring
     }
@@ -106,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         val slots = intArrayOf(R.id.nav_home, R.id.nav_news, R.id.nav_wallet, R.id.nav_more)
         for (id in slots) {
             val slot = findViewById<LinearLayout>(id) ?: continue
-            val frame = slot.getChildAt(0) as? ViewGroup ?: continue
+            val icon = slot.getChildAt(0) as? TextView
             val label = slot.getChildAt(1) as? TextView
             val on = id == tabId
             val color = if (on) activeColor else idleColor
