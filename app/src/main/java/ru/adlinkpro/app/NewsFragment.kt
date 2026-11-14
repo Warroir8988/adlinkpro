@@ -30,7 +30,7 @@ class NewsFragment : Fragment() {
         scroll.addView(content)
 
         val title = TextView(ctx)
-        title.text = "📰 Новости v2"
+        title.text = "📰 Новости"
         title.textSize = 18f
         title.setTypeface(null, Typeface.BOLD)
         title.setTextColor(Color.parseColor("#1e293b"))
