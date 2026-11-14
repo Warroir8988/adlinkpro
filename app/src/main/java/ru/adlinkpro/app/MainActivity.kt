@@ -1,9 +1,12 @@
 package ru.adlinkpro.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +14,7 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import kotlin.concurrent.thread
 
@@ -47,6 +51,30 @@ class MainActivity : AppCompatActivity() {
         }
 
         refreshNotifBadge()
+
+        /* fw-push: свои пуши — запускаем быстрый опрос и страховку */
+        requestNotifPermission()
+        PushHelper.ensureChannel(this)
+        try {
+            ContextCompat.startForegroundService(this, Intent(this, PollService::class.java))
+        } catch (_: Exception) {}
+        PushHelper.scheduleFallback(this)
+
+        /* fw-push: тап по уведомлению открывает раздел уведомлений */
+        if (savedInstanceState == null && intent?.getBooleanExtra("open_notifications", false) == true) {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, NotificationsFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+    }
+
+    private fun requestNotifPermission() {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 7001)
+        }
     }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
