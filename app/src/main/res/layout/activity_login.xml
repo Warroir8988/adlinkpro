@@ -113,6 +113,18 @@
             android:text="@string/register" />
 
         <TextView
+            android:id="@+id/tv_forgot"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:text="Забыли пароль?"
+            android:textSize="13sp"
+            android:textColor="@color/primary"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
             android:id="@+id/tv_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
