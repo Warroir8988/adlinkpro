@@ -12,7 +12,6 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
 
-/* fw-push: показ уведомлений в шторке + страховочный фоновый опрос */
 object PushHelper {
     const val CHANNEL_ID = "adlink_push"
 
@@ -37,7 +36,7 @@ object PushHelper {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             val n = NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_launcher)
                 .setContentTitle(title)
                 .setContentText(text)
                 .setStyle(NotificationCompat.BigTextStyle().bigText(text))
@@ -49,7 +48,6 @@ object PushHelper {
         } catch (_: Exception) {}
     }
 
-    /* Страховка, когда убит foreground-сервис: Android сам будит раз в 15 минут */
     fun scheduleFallback(context: Context) {
         try {
             val req = PeriodicWorkRequest.Builder(PollWorker::class.java, 15, TimeUnit.MINUTES).build()
