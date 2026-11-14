@@ -25,15 +25,6 @@ class SplashActivity : Activity() {
         )
         root.background = bg
 
-        // Логотип в круге
-        val logo = findViewById<TextView>(R.id.splash_logo)
-        val circle = GradientDrawable(
-            GradientDrawable.Orientation.TL_BR,
-            intArrayOf(Color.parseColor("#38bdf8"), Color.parseColor("#2563eb"))
-        )
-        circle.shape = GradientDrawable.OVAL
-        logo.background = circle
-
         val name = findViewById<TextView>(R.id.splash_name)
         name.setTypeface(null, Typeface.BOLD)
 
