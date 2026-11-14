@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -262,10 +261,17 @@ class DashboardFragment : Fragment() {
         qaTitle.setTextColor(Color.parseColor("#1e293b"))
         qa.addView(qaTitle)
 
-        fun openSite(path: String) {
-            try {
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://adlinkpro.ru/" + path)))
-            } catch (_: Exception) {}
+        fun openFragment(f: Fragment) {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.container, f)
+                .addToBackStack(null)
+                .commit()
+        }
+
+        fun openWallet(section: String) {
+            val f = WalletFragment()
+            f.arguments = Bundle().apply { putString("section", section) }
+            openFragment(f)
         }
 
         fun actBtn(label: String, onClick: () -> Unit): TextView {
@@ -292,16 +298,16 @@ class DashboardFragment : Fragment() {
         }
 
         actRow(
-            actBtn("💰 Пополнить") { openSite("user/balance.php") },
-            actBtn("📢 Создать кампанию") { openSite("user/campaign_add.php") }
+            actBtn("💰 Пополнить") { openWallet("deposit") },
+            actBtn("📢 Создать кампанию") { openFragment(CampaignsFragment()) }
         )
         actRow(
-            actBtn("🌐 Витрина") { openSite("user/showcase.php") },
+            actBtn("🌐 Витрина") { openFragment(ShowcaseFragment()) },
             actBtn("📦 Тираж") { startActivity(Intent(requireContext(), CpmOrderActivity::class.java)) }
         )
         actRow(
             actBtn("🎁 Партнёрам") { startActivity(Intent(requireContext(), ReferralActivity::class.java)) },
-            actBtn("💸 Вывести") { openSite("user/withdraw.php") }
+            actBtn("💸 Вывести") { openWallet("withdraw") }
         )
         content.addView(qa)
 
