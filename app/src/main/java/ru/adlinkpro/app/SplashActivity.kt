@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.TextView
-import kotlin.concurrent.thread
 
 class SplashActivity : Activity() {
 
@@ -28,26 +27,11 @@ class SplashActivity : Activity() {
         val name = findViewById<TextView>(R.id.splash_name)
         name.setTypeface(null, Typeface.BOLD)
 
-        // Полторы секунды заставки, затем решаем, куда идти
+        // Полторы секунды заставки, затем LoginActivity сам решает:
+        // форма входа / придумать пин / ввести сохранённый пин
         Handler(Looper.getMainLooper()).postDelayed({
-            val sp = getSharedPreferences("app", MODE_PRIVATE)
-            val token = sp.getString("token", null)
-            val pin = sp.getString("pin", null)
-
-            when {
-                token == null || pin == null -> {
-                    // Не зарегистрирован или пин ещё не придуман — на вход
-                    startActivity(Intent(this, LoginActivity::class.java))
-                    finish()
-                }
-                else -> {
-                    // Всё есть — сразу в кабинет
-                    val i = Intent(this, MainActivity::class.java)
-                    i.putExtra("pin_ok", true)
-                    startActivity(i)
-                    finish()
-                }
-            }
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
         }, 1500)
     }
 }
