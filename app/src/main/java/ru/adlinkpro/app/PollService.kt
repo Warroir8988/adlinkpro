@@ -14,7 +14,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import kotlin.concurrent.thread
 
-/* fw-push: передний сервис, опрос каждые 15 секунд — быстрая доставка своих пушей */
 class PollService : Service() {
 
     private var running = false
@@ -64,7 +63,7 @@ class PollService : Service() {
         val n = NotificationCompat.Builder(this, "adlink_service")
             .setContentTitle("AdLinkPro")
             .setContentText("Быстрая доставка уведомлений включена")
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_launcher)
             .setOngoing(true)
             .setContentIntent(pi)
             .build()
