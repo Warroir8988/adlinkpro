@@ -1,0 +1,32 @@
+name: Create signing key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  create-key:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate keystore (only if missing)
+        run: |
+          if [ -f app/adlinkpro.jks ]; then
+            echo "Keystore already exists — skipping"
+            exit 0
+          fi
+          keytool -genkeypair -v \
+            -keystore app/adlinkpro.jks \
+            -alias adlinkpro \
+            -keyalg RSA -keysize 2048 -validity 10950 \
+            -storepass AdLink2026Key -keypass AdLink2026Key \
+            -dname "CN=AdLinkPro, OU=AdLinkPro, O=AdLinkPro, L=Engels, ST=Saratov, C=RU"
+
+      - name: Commit keystore to repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add app/adlinkpro.jks
+          git diff --cached --quiet && echo "Nothing to commit" || git commit -m "Add signing keystore"
+          git push
