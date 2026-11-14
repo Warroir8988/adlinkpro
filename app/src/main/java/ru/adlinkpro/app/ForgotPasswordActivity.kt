@@ -108,7 +108,7 @@ class ForgotPasswordActivity : Activity() {
         bg.setStroke(dp(1), Color.parseColor("#e2e8f0"))
         e.background = bg
         e.setPadding(dp(12), dp(11), dp(12), dp(11))
-        e.singleLine = true
+        e.setSingleLine(true)
         return e
     }
 
