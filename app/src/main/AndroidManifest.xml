@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- fw-push: свои уведомления -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".App"
@@ -55,6 +59,12 @@
         <activity android:name=".TextAdCreateActivity" />
         <activity android:name=".BannerOrderActivity" />
         <activity android:name=".CrashActivity" />
+
+        <!-- fw-push: передний сервис быстрой доставки уведомлений -->
+        <service
+            android:name=".PollService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
     </application>
 </manifest>
